@@ -1,0 +1,54 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --color-hsb-primary: #004B93;
+    --color-hsb-hover: #003870;
+    --color-hsb-deep: #002B5B;
+    --color-hsb-tint: #EBF3FA;
+    --color-hsb-canvas: #F4F7FA;
+  }
+
+  html {
+    font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
+    font-feature-settings: 'tnum' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  body {
+    @apply bg-[#F4F7FA] text-slate-800 antialiased dark:bg-[#0B1426] dark:text-slate-100 min-h-screen selection:bg-[#004B93] selection:text-white;
+  }
+}
+
+/* Custom crisp scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(15, 44, 89, 0.25);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(15, 44, 89, 0.45);
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.25);
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.45);
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+}
