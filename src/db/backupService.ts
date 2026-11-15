@@ -3,13 +3,34 @@ import {
   Subject,
   Assignment,
   StoredFileMetadata,
+  StoredFileBlob,
   PomodoroSession,
   SubjectAttendance,
   TimetableDay,
   ExamReminder,
   StudentProfile,
 } from '../types';
-import { setMeta, getAllFileMetadata, initDB } from './indexedDB';
+import {
+  setMeta,
+  getAllFileMetadata,
+  getFileBlob,
+  saveFileBlobsBatch,
+  initDB,
+} from './indexedDB';
+
+const blobToBase64 = (blob: Blob): Promise<string> => {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onloadend = () => resolve(reader.result as string);
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+};
+
+const base64ToBlob = async (base64DataUrl: string): Promise<Blob> => {
+  const res = await fetch(base64DataUrl);
+  return await res.blob();
+};
 
 export const generateBackupObject = async (
   subjects: Subject[],
@@ -19,9 +40,33 @@ export const generateBackupObject = async (
   assignments: Assignment[],
   student: StudentProfile,
   pomodoroSessions: PomodoroSession[],
-  darkMode: boolean
+  darkMode: boolean,
+  includeFiles: boolean = true
 ): Promise<LMSBackupData> => {
   const fileMetadata: StoredFileMetadata[] = await getAllFileMetadata();
+
+  let storedFiles: Array<StoredFileMetadata & { base64Data?: string }> | undefined;
+
+  if (includeFiles && fileMetadata.length > 0) {
+    storedFiles = [];
+    for (const meta of fileMetadata) {
+      try {
+        const fullBlob = await getFileBlob(meta.id);
+        if (fullBlob && fullBlob.blob) {
+          const b64 = await blobToBase64(fullBlob.blob);
+          storedFiles.push({
+            ...meta,
+            base64Data: b64,
+          });
+        } else {
+          storedFiles.push(meta);
+        }
+      } catch (e) {
+        console.warn(`Could not export blob for ${meta.name}:`, e);
+        storedFiles.push(meta);
+      }
+    }
+  }
 
   return {
     version: '2.0.0',
@@ -34,6 +79,7 @@ export const generateBackupObject = async (
     examReminders,
     assignments,
     fileMetadata,
+    storedFiles,
     pomodoroSessions,
     settings: {
       darkMode,
@@ -49,7 +95,8 @@ export const downloadBackupJSON = async (
   assignments: Assignment[],
   student: StudentProfile,
   pomodoroSessions: PomodoroSession[],
-  darkMode: boolean
+  darkMode: boolean,
+  includeFiles: boolean = true
 ): Promise<void> => {
   const backupData = await generateBackupObject(
     subjects,
@@ -59,9 +106,10 @@ export const downloadBackupJSON = async (
     assignments,
     student,
     pomodoroSessions,
-    darkMode
+    darkMode,
+    includeFiles
   );
-  const jsonStr = JSON.stringify(backupData, null, 2);
+  const jsonStr = JSON.stringify(backupData);
   const blob = new Blob([jsonStr], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
 
@@ -69,7 +117,7 @@ export const downloadBackupJSON = async (
   const dateStr = now.toISOString().split('T')[0];
   const a = document.createElement('a');
   a.href = url;
-  a.download = `HSB_Jaipur_Kushagra_LMS_${dateStr}.json`;
+  a.download = `HSB_LMS_Backup_${student.rollNumber || '2026MBAPM018'}_${dateStr}.json`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -93,14 +141,43 @@ export const parseAndValidateBackupJSON = (fileContent: string): LMSBackupData =
 };
 
 export const saveBackupToStorage = async (backup: LMSBackupData): Promise<void> => {
-  await setMeta('subjects', backup.subjects);
-  if (backup.attendance) await setMeta('attendance', backup.attendance);
-  if (backup.timetable) await setMeta('timetable', backup.timetable);
-  if (backup.examReminders) await setMeta('examReminders', backup.examReminders);
-  if (backup.assignments) await setMeta('assignments', backup.assignments);
-  if (backup.student) await setMeta('student', backup.student);
+  // Use correct Trimester II database keys
+  await setMeta('subjects_t2', backup.subjects);
+  if (backup.attendance) await setMeta('attendance_t2', backup.attendance);
+  if (backup.timetable) await setMeta('timetable_t2', backup.timetable);
+  if (backup.examReminders) await setMeta('exam_reminders_t2', backup.examReminders);
+  if (backup.assignments) await setMeta('assignments_t2', backup.assignments);
+  if (backup.student) await setMeta('student_t2', backup.student);
   if (backup.pomodoroSessions) await setMeta('pomodoroSessions', backup.pomodoroSessions);
   if (backup.settings) await setMeta('settings', backup.settings);
+
+  // Restore uploaded file blobs if included in the backup
+  if (backup.storedFiles && backup.storedFiles.length > 0) {
+    const blobsToRestore: StoredFileBlob[] = [];
+    for (const f of backup.storedFiles) {
+      if (f.base64Data) {
+        try {
+          const blob = await base64ToBlob(f.base64Data);
+          blobsToRestore.push({
+            id: f.id,
+            subjectId: f.subjectId,
+            name: f.name,
+            size: f.size,
+            type: f.type,
+            moduleTag: f.moduleTag,
+            uploadDate: f.uploadDate,
+            assignmentId: f.assignmentId,
+            blob,
+          });
+        } catch (e) {
+          console.warn(`Failed to restore blob for ${f.name}:`, e);
+        }
+      }
+    }
+    if (blobsToRestore.length > 0) {
+      await saveFileBlobsBatch(blobsToRestore);
+    }
+  }
 };
 
 export const clearAllLocalData = async (): Promise<void> => {

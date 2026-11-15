@@ -138,7 +138,7 @@ interface LMSContextType {
   // Backup & Reset
   isBackupModalOpen: boolean;
   setIsBackupModalOpen: (open: boolean) => void;
-  exportBackup: () => Promise<void>;
+  exportBackup: (includeFiles?: boolean) => Promise<void>;
   importBackup: (fileContent: string) => Promise<void>;
   resetToInitialRoster: () => Promise<void>;
   clearAllData: () => Promise<void>;
@@ -745,7 +745,7 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   };
 
   // Backup & Reset
-  const exportBackup = async () => {
+  const exportBackup = async (includeFiles: boolean = true) => {
     await downloadBackupJSON(
       subjects,
       attendance,
@@ -754,7 +754,8 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       assignments,
       student,
       [],
-      isDarkMode
+      isDarkMode,
+      includeFiles
     );
   };
 
@@ -774,6 +775,7 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
     const currentFiles = await getAllFileMetadata();
     setFiles(currentFiles);
+    await refreshStorageQuota();
   };
 
   const resetToInitialRoster = async () => {

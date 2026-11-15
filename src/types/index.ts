@@ -162,6 +162,7 @@ export interface LMSBackupData {
   examReminders: ExamReminder[];
   assignments: Assignment[];
   fileMetadata: StoredFileMetadata[];
+  storedFiles?: Array<StoredFileMetadata & { base64Data?: string }>;
   pomodoroSessions: PomodoroSession[];
   settings: {
     darkMode: boolean;

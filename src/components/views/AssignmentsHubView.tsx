@@ -84,17 +84,13 @@ export const AssignmentsHubView: React.FC<AssignmentsHubViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Header Banner */}
-      <div className="p-6 sm:p-7 bg-gradient-to-r from-[#004B93] via-[#003870] to-[#002B5B] text-white rounded-3xl shadow-hsb-lg border border-white/10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 bg-gradient-to-r from-[#004B93] via-[#003870] to-[#002B5B] text-white rounded-3xl shadow-sm border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2 text-xs font-bold text-[#38BDF8] uppercase tracking-widest mb-1">
-            <FileCheck2 className="w-4 h-4" />
-            <span>Assignments & Case Deliverables Hub</span>
-          </div>
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-            Academic Submissions Matrix
+            Assignments & Deadlines
           </h2>
-          <p className="text-xs text-slate-300 mt-1">
-            Manage deadlines, track priority, and attach completed submission proofs into IndexedDB.
+          <p className="text-xs text-slate-300 mt-0.5">
+            {assignments.length} total tasks ({assignments.filter((a) => a.status === 'Submitted').length} submitted)
           </p>
         </div>
 
@@ -111,15 +107,15 @@ export const AssignmentsHubView: React.FC<AssignmentsHubViewProps> = ({
             className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white font-bold text-xs border border-white/20 transition"
           >
             <FileSpreadsheet className="w-4 h-4 text-emerald-400" />
-            <span>Import Schedule (.xlsx)</span>
+            <span>Import Excel</span>
           </button>
 
           <button
             onClick={onOpenNewAssignment}
-            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-white text-[#004B93] hover:bg-[#EBF3FA] font-bold text-xs shadow-md transition"
+            className="flex items-center space-x-1.5 px-4 py-2 rounded-xl bg-white text-[#004B93] hover:bg-[#EBF3FA] font-bold text-xs shadow-sm transition"
           >
             <Plus className="w-4 h-4" />
-            <span>Add Deliverable</span>
+            <span>Add Task</span>
           </button>
         </div>
       </div>

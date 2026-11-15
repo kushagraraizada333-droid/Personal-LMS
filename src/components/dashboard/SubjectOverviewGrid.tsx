@@ -39,14 +39,14 @@ export const SubjectOverviewGrid: React.FC = () => {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-            <BookOpen className="w-5 h-5 text-hsb-royal dark:text-hsb-cyan" />
-            <span>Trimester II Course Catalog (8 Subjects • 16 Credits)</span>
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
+            <BookOpen className="w-4 h-4 text-[#004B93] dark:text-[#38BDF8]" />
+            <span>Course Catalog</span>
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Attendance forensics, study progress, and course workspaces
-          </p>
         </div>
+        <span className="text-xs font-mono font-bold text-slate-400">
+          8 Courses • 16 Credits
+        </span>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
@@ -181,12 +181,12 @@ export const SubjectOverviewGrid: React.FC = () => {
                   {attMetrics.safeBunks75 > 0 ? (
                     <span className="text-[11px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center space-x-1">
                       <ShieldCheck className="w-3.5 h-3.5" />
-                      <span>Can miss up to {attMetrics.safeBunks75} more classes (≥ 75%)</span>
+                      <span>Safe buffer: {attMetrics.safeBunks75} {attMetrics.safeBunks75 === 1 ? 'class' : 'classes'}</span>
                     </span>
                   ) : (
                     <span className="text-[11px] font-bold text-amber-600 dark:text-amber-400 flex items-center space-x-1">
                       <AlertTriangle className="w-3.5 h-3.5" />
-                      <span>Attendance strictly required</span>
+                      <span>Buffer: 0 (Required)</span>
                     </span>
                   )}
                 </div>

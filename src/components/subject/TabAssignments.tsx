@@ -92,13 +92,10 @@ export const TabAssignments: React.FC<TabAssignmentsProps> = ({
       {/* Top Bar with Filter & Actions */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
         <div>
-          <h3 className="text-base font-bold text-slate-900 dark:text-white flex items-center space-x-2">
-            <FileCheck2 className="w-5 h-5 text-hsb-royal dark:text-hsb-cyan" />
-            <span>Assignments & Case Submissions • {subject.code}</span>
+          <h3 className="text-base font-extrabold text-slate-900 dark:text-white flex items-center space-x-2">
+            <FileCheck2 className="w-4 h-4 text-[#004B93] dark:text-[#38BDF8]" />
+            <span>Assignments ({subjectAssignments.length})</span>
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400">
-            Log deadlines or upload completed submission proofs directly into IndexedDB
-          </p>
         </div>
 
         <div className="flex items-center space-x-2 flex-wrap gap-y-2">

@@ -127,27 +127,23 @@ export const TimetableView: React.FC<TimetableViewProps> = ({ onOpenSyncExcel })
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="p-6 bg-gradient-to-r from-[#07162C] via-hsb-navy to-[#0F2C59] text-white rounded-3xl shadow-hsb-lg border border-blue-900/60 flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="p-5 sm:p-6 bg-gradient-to-r from-[#004B93] via-[#003870] to-[#002B5B] text-white rounded-3xl shadow-sm border border-white/10 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center space-x-2 text-xs font-bold text-hsb-cyan uppercase tracking-widest mb-1">
-            <CalendarDays className="w-4 h-4" />
-            <span>Official Academic Calendar (Oct 2026 – Dec 2026)</span>
-          </div>
           <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight">
-            HSB Trimester II Interactive Timetable
+            Timetable & Calendar
           </h2>
-          <p className="text-xs text-slate-300 mt-1">
-            Weeks 1 to 12 schedule parsed from <span className="font-mono text-white">Tentative_Timetable_TermII_Batch2026-28.xlsx</span>
+          <p className="text-xs text-slate-300 mt-0.5">
+            Trimester II schedule (Weeks 1 to 12)
           </p>
         </div>
 
         <div className="flex items-center space-x-2 shrink-0">
           <button
             onClick={onOpenSyncExcel}
-            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition"
+            className="flex items-center space-x-1.5 px-3.5 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition"
           >
             <FileSpreadsheet className="w-4 h-4" />
-            <span>Update via Excel</span>
+            <span>Sync Excel</span>
           </button>
         </div>
       </div>

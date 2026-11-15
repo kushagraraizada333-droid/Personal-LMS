@@ -57,10 +57,10 @@ export const SubjectWorkspace: React.FC<SubjectWorkspaceProps> = ({
     label: string;
     icon: React.FC<{ className?: string }>;
   }[] = [
-    { id: 'vault', label: 'Tab A — Study Material Vault', icon: FolderArchive },
-    { id: 'assignments', label: 'Tab B — Assignments & Deadlines', icon: FileCheck2 },
-    { id: 'gradebook', label: 'Tab C — Marks & Gradebook', icon: GraduationCap },
-    { id: 'syllabus', label: 'Tab D — Study Progress & Syllabus', icon: Layers },
+    { id: 'vault', label: 'Study Vault', icon: FolderArchive },
+    { id: 'assignments', label: 'Assignments', icon: FileCheck2 },
+    { id: 'gradebook', label: 'Gradebook', icon: GraduationCap },
+    { id: 'syllabus', label: 'Syllabus', icon: Layers },
   ];
 
   return (
@@ -69,21 +69,21 @@ export const SubjectWorkspace: React.FC<SubjectWorkspaceProps> = ({
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <button
           onClick={() => setActiveView('dashboard')}
-          className="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-500 hover:text-hsb-royal dark:hover:text-hsb-cyan transition"
+          className="inline-flex items-center space-x-1.5 text-xs font-bold text-slate-500 hover:text-[#004B93] dark:hover:text-[#38BDF8] transition"
         >
           <ArrowLeft className="w-4 h-4" />
-          <span>Back to Executive Dashboard</span>
+          <span>Back to Dashboard</span>
         </button>
 
         {/* Course Switcher */}
         <div className="flex items-center space-x-2">
           <span className="text-xs font-semibold text-slate-400 hidden sm:inline">
-            Switch Course:
+            Course:
           </span>
           <select
             value={currentSubject.code}
             onChange={(e) => setSelectedSubjectCode(e.target.value)}
-            className="px-3.5 py-1.5 text-xs font-mono font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white shadow-xs focus:ring-2 focus:ring-hsb-royal"
+            className="px-3 py-1.5 text-xs font-mono font-bold bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-900 dark:text-white shadow-xs focus:ring-2 focus:ring-[#004B93]"
           >
             {subjects.map((s) => (
               <option key={s.code} value={s.code}>
@@ -95,37 +95,37 @@ export const SubjectWorkspace: React.FC<SubjectWorkspaceProps> = ({
       </div>
 
       {/* Course Executive Header Card */}
-      <div className="relative p-6 sm:p-7 bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
+      <div className="relative p-5 sm:p-6 bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm overflow-hidden">
         {/* Color stripe */}
         <div
           className="absolute top-0 left-0 right-0 h-1.5"
-          style={{ backgroundColor: currentSubject.color || '#2563EB' }}
+          style={{ backgroundColor: currentSubject.color || '#004B93' }}
         />
 
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-5">
+        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
           {/* Details */}
-          <div className="space-y-2">
+          <div className="space-y-1.5">
             <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-lg bg-[#EBF3FA] dark:bg-slate-800 text-[#004B93] dark:text-[#38BDF8] border border-[#D6E6F5] dark:border-slate-700">
+              <span className="text-xs font-mono font-black px-2 py-0.5 rounded-lg bg-[#EBF3FA] dark:bg-slate-800 text-[#004B93] dark:text-[#38BDF8] border border-[#D6E6F5] dark:border-slate-700">
                 {currentSubject.code}
               </span>
               <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                {currentSubject.term} • {currentSubject.credits} Credit Units • {currentSubject.plannedSessions} Planned Sessions
+                {currentSubject.credits} Credits • {currentSubject.plannedSessions} Planned Sessions
               </span>
             </div>
 
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-900 dark:text-white tracking-tight">
+            <h1 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white tracking-tight">
               {currentSubject.name}
             </h1>
 
-            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 dark:text-slate-300">
-              <span className="flex items-center space-x-1.5 font-medium">
+            <div className="flex flex-wrap items-center gap-4 text-xs text-slate-600 dark:text-slate-400 pt-0.5">
+              <span className="flex items-center space-x-1.5">
                 <User className="w-3.5 h-3.5 text-slate-400" />
                 <span>Faculty: {currentSubject.faculty}</span>
               </span>
-              <span className="flex items-center space-x-1.5 text-slate-400 font-medium">
+              <span className="flex items-center space-x-1.5">
                 <Users className="w-3.5 h-3.5 text-slate-400" />
-                <span>Teaching Assistant: {currentSubject.ta}</span>
+                <span>TA: {currentSubject.ta}</span>
               </span>
             </div>
           </div>

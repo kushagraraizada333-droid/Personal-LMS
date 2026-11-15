@@ -314,85 +314,32 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
   }, [subjectFiles]);
 
   return (
-    <div className="space-y-6">
-      {/* Storage Capacity & Persistence Status Card */}
-      <div className="bg-[#F4F7FA]/90 dark:bg-slate-800/60 p-4 sm:p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="flex items-center space-x-3.5">
-          <div className="p-3 rounded-2xl bg-[#004B93] text-white shadow-md">
-            <HardDrive className="w-6 h-6" />
-          </div>
-          <div>
-            <div className="flex items-center space-x-2">
-              <h4 className="text-sm font-extrabold text-[#0F172A] dark:text-white">
-                High-Capacity Offline IndexedDB Vault
-              </h4>
-              <span className="inline-flex items-center space-x-1 px-2.5 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800 dark:bg-emerald-950/70 dark:text-emerald-300">
-                <ShieldCheck className="w-3 h-3" />
-                <span>Zero Cloud • 100% Private</span>
-              </span>
-            </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-              Supports large files (up to 1 GB+ per file, videos & slide decks). Stored directly on disk via Chromium IndexedDB.
-            </p>
-          </div>
-        </div>
-
-        {/* Quota stats */}
-        <div className="flex items-center gap-3 self-start md:self-auto text-xs bg-white dark:bg-slate-900/80 px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700/80">
-          <div className="text-right">
-            <p className="text-[11px] text-slate-400 font-medium">Vault Footprint</p>
-            <p className="font-mono font-bold text-[#004B93] dark:text-[#38BDF8]">
-              {formatFileSize(storageUsage.totalBytes)} ({storageUsage.fileCount} files)
-            </p>
-          </div>
-          {storageUsage.quotaBytes && (
-            <>
-              <div className="h-8 w-px bg-slate-200 dark:bg-slate-700" />
-              <div>
-                <p className="text-[11px] text-slate-400 font-medium">Available Disk Quota</p>
-                <p className="font-mono font-bold text-slate-700 dark:text-slate-200">
-                  ~{formatFileSize(storageUsage.quotaBytes)}
-                </p>
-              </div>
-            </>
-          )}
-          {!storageUsage.isPersistent && (
-            <button
-              onClick={() => requestPersistentStorage()}
-              className="ml-2 px-2.5 py-1 text-[11px] font-bold rounded-lg bg-[#EBF3FA] hover:bg-[#D6E6F5] text-[#004B93] dark:bg-slate-800 dark:text-[#38BDF8] transition"
-              title="Request browser to prevent storage eviction"
-            >
-              Enable Persistent
-            </button>
-          )}
-        </div>
-      </div>
-
-      {/* Upload Drop Zone & Target Module */}
+    <div className="space-y-5">
+      {/* Upload Target & Module Tag */}
       <div className="bg-white dark:bg-[#111827] rounded-3xl p-5 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4">
         {/* Module tag selector */}
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800/80">
           <div className="flex items-center space-x-2">
             <FolderOpen className="w-4 h-4 text-[#004B93] dark:text-[#38BDF8]" />
             <span className="text-xs font-bold text-[#0F172A] dark:text-white uppercase tracking-wider">
-              Upload Target for {subject.code}
+              {subject.code} Vault ({subjectFiles.length} {subjectFiles.length === 1 ? 'file' : 'files'})
             </span>
           </div>
           <div className="flex items-center space-x-2">
-            <label className="text-xs font-semibold text-slate-600 dark:text-slate-400 whitespace-nowrap">
-              Tag Files With Module:
+            <label className="text-xs font-semibold text-slate-500 whitespace-nowrap">
+              Module:
             </label>
             <input
               type="text"
-              placeholder="e.g. Session 1 Slides, Coursepack, Case Study"
+              placeholder="e.g. Session 1, Coursepack"
               value={uploadModuleTag}
               onChange={(e) => setUploadModuleTag(e.target.value)}
-              className="px-3 py-1.5 text-xs bg-[#F4F7FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#004B93] min-w-[220px]"
+              className="px-3 py-1.5 text-xs bg-[#F4F7FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#004B93] min-w-[200px]"
             />
           </div>
         </div>
 
-        {/* Interactive Drag & Drop Box */}
+        {/* Minimalist Drop Box */}
         <div
           onDragOver={(e) => {
             e.preventDefault();
@@ -405,7 +352,7 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
             handleFiles(e.dataTransfer.files);
           }}
           onClick={() => fileInputRef.current?.click()}
-          className={`border-2 border-dashed rounded-2xl p-7 text-center cursor-pointer transition-all ${
+          className={`border-2 border-dashed rounded-2xl p-6 text-center cursor-pointer transition-all ${
             isDragging
               ? 'border-[#004B93] bg-[#EBF3FA] dark:bg-slate-800/80 scale-[1.01]'
               : 'border-[#D6E6F5] dark:border-slate-700 hover:border-[#004B93] bg-[#F4F7FA]/40 dark:bg-[#0B1120]'
@@ -420,28 +367,26 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
             onChange={(e) => handleFiles(e.target.files)}
           />
 
-          <div className="w-14 h-14 mx-auto mb-3 rounded-2xl bg-[#EBF3FA] dark:bg-slate-800 text-[#004B93] dark:text-[#38BDF8] flex items-center justify-center shadow-sm">
+          <div className="w-12 h-12 mx-auto mb-2.5 rounded-2xl bg-[#EBF3FA] dark:bg-slate-800 text-[#004B93] dark:text-[#38BDF8] flex items-center justify-center shadow-xs">
             {isUploading ? (
-              <Loader2 className="w-7 h-7 animate-spin" />
+              <Loader2 className="w-6 h-6 animate-spin" />
             ) : (
-              <UploadCloud className="w-7 h-7" />
+              <UploadCloud className="w-6 h-6" />
             )}
           </div>
 
-          <h3 className="text-sm font-extrabold text-[#0F172A] dark:text-white">
-            {isUploading
-              ? 'Storing Binary Blobs into IndexedDB...'
-              : `Drop Any Course Materials for ${subject.code} (${subject.name}) Here`}
+          <h3 className="text-sm font-bold text-[#0F172A] dark:text-white">
+            {isUploading ? 'Uploading files...' : 'Drop files here or click to browse'}
           </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 max-w-xl mx-auto">
-            Drop single files or <span className="font-bold text-slate-700 dark:text-slate-300">entire batches</span>. Supports <span className="font-semibold text-slate-700 dark:text-slate-300">PDFs, Slide Decks, Excel Models, Word Docs, ZIP archives, Video & Audio recordings</span>.
+          <p className="text-[11px] text-slate-400 mt-0.5">
+            PDF • PPT • Excel • Word • Video • Audio • ZIP
           </p>
 
           <button
             type="button"
-            className="mt-4 px-5 py-2 text-xs font-bold rounded-xl bg-[#004B93] hover:bg-[#003870] text-white shadow-md transition"
+            className="mt-3 px-4 py-1.5 text-xs font-bold rounded-xl bg-[#004B93] hover:bg-[#003870] text-white shadow-xs transition"
           >
-            Select Files to Upload (Batch Supported)
+            Select Files
           </button>
         </div>
 
@@ -485,8 +430,7 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
             <h4 className="text-sm font-extrabold text-[#0F172A] dark:text-white flex items-center space-x-2">
               <FolderOpen className="w-4 h-4 text-[#004B93] dark:text-[#38BDF8]" />
               <span>
-                Vault Contents for {subject.code} ({subjectFiles.length}{' '}
-                {subjectFiles.length === 1 ? 'file' : 'files'} • {formatFileSize(subjectTotalSize)})
+                Files ({subjectFiles.length} • {formatFileSize(subjectTotalSize)})
               </span>
             </h4>
           </div>

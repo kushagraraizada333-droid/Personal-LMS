@@ -51,26 +51,17 @@ export const TabSyllabus: React.FC<TabSyllabusProps> = ({ subject }) => {
       <div className="p-6 bg-white dark:bg-[#111827] rounded-3xl border border-slate-200 dark:border-slate-800 shadow-sm">
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-4">
           <div>
-            <div className="flex items-center space-x-2 mb-1">
-              <span className="text-xs font-bold uppercase tracking-wider text-hsb-royal dark:text-hsb-cyan">
-                Study Progress Tracker
-              </span>
-              <span className="text-slate-300 dark:text-slate-700">•</span>
-              <span className="text-xs font-mono text-slate-500">
-                {subject.code}
-              </span>
-            </div>
             <h3 className="text-xl font-extrabold text-slate-900 dark:text-white">
-              Syllabus Checklist & Mastery Index
+              Syllabus Checklist
             </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              {progress.completed} of {progress.total} topics completed
+            </p>
           </div>
 
-          <div className="flex items-baseline space-x-2">
-            <span className="text-4xl font-black text-hsb-royal dark:text-hsb-cyan tabular-nums">
+          <div className="flex items-baseline space-x-1">
+            <span className="text-3xl font-black text-[#004B93] dark:text-[#38BDF8] tabular-nums">
               {progress.percentage}%
-            </span>
-            <span className="text-xs font-semibold text-slate-500">
-              ({progress.completed} of {progress.total} topics completed)
             </span>
           </div>
         </div>

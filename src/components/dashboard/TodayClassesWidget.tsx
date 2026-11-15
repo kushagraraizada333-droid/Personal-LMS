@@ -35,15 +35,15 @@ export const TodayClassesWidget: React.FC = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
         <div className="flex items-center space-x-2.5">
-          <div className="p-2.5 rounded-2xl bg-[#EBF3FA] dark:bg-slate-800 text-[#004B93] dark:text-[#38BDF8]">
-            <CalendarDays className="w-5 h-5" />
+          <div className="p-2 rounded-xl bg-[#EBF3FA] dark:bg-slate-800 text-[#004B93] dark:text-[#38BDF8]">
+            <CalendarDays className="w-4 h-4" />
           </div>
           <div>
-            <h3 className="text-base font-extrabold text-[#0F172A] dark:text-white">
-              Schedule & Today&apos;s Sessions
+            <h3 className="text-sm font-extrabold text-[#0F172A] dark:text-white">
+              Daily Schedule
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
-              Week {selectedDay.weekNumber} • {selectedDay.dayName}, {selectedDay.date}
+            <p className="text-[11px] text-slate-400">
+              W{selectedDay.weekNumber} • {selectedDay.dayName}, {selectedDay.date}
             </p>
           </div>
         </div>
@@ -53,7 +53,7 @@ export const TodayClassesWidget: React.FC = () => {
           <select
             value={selectedDate}
             onChange={(e) => setSelectedDate(e.target.value)}
-            className="px-3 py-1.5 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200"
+            className="px-2.5 py-1 text-xs font-semibold bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200"
           >
             {timetable.slice(0, 20).map((t) => (
               <option key={t.date} value={t.date}>
@@ -64,10 +64,10 @@ export const TodayClassesWidget: React.FC = () => {
 
           <button
             onClick={() => setActiveView('timetable')}
-            className="inline-flex items-center space-x-1 text-xs font-bold text-[#004B93] dark:text-[#38BDF8] hover:underline ml-1"
+            className="inline-flex items-center space-x-1 text-xs font-bold text-[#004B93] dark:text-[#38BDF8] hover:underline"
           >
-            <span>Full 12 Weeks</span>
-            <ArrowRight className="w-3.5 h-3.5" />
+            <span>All Weeks</span>
+            <ArrowRight className="w-3 h-3" />
           </button>
         </div>
       </div>

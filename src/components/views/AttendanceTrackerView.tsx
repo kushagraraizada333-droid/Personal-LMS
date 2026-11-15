@@ -57,65 +57,55 @@ export const AttendanceTrackerView: React.FC<AttendanceTrackerViewProps> = ({
   return (
     <div className="space-y-6">
       {/* Overall Attendance Forensics Banner */}
-      <div className="p-6 sm:p-8 bg-gradient-to-r from-[#004B93] via-[#003870] to-[#002B5B] text-white rounded-3xl shadow-hsb-lg border border-white/10">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="p-5 sm:p-6 bg-gradient-to-r from-[#004B93] via-[#003870] to-[#002B5B] text-white rounded-3xl shadow-sm border border-white/10">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-2 text-xs font-bold text-[#38BDF8] uppercase tracking-widest mb-1">
-              <CheckCircle2 className="w-4 h-4" />
-              <span>Official HSB Attendance Forensics</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Session Attendance & Safe-Bunk Forensics
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight">
+              Attendance Tracker
             </h2>
-            <p className="text-xs text-slate-300 mt-1 max-w-xl">
-              Tracked for <span className="font-bold text-white">{student.name}</span> ({student.rollNumber}).
-              Click on any session in the grid to toggle status between Present, Absent, and Upcoming.
+            <p className="text-xs text-slate-300 mt-0.5">
+              Click any session circle to toggle status (Present, Absent, Upcoming).
             </p>
           </div>
 
           {/* Quick Metrics & Excel Upload */}
-          <div className="flex items-center space-x-4 shrink-0">
-            <div className="text-right p-4 rounded-2xl bg-black/30 border border-white/10 backdrop-blur-sm">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-hsb-cyan">
-                Batch Cumulative
+          <div className="flex items-center space-x-3 shrink-0">
+            <div className="text-right px-3.5 py-2 rounded-2xl bg-black/25 border border-white/10 backdrop-blur-md">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300 block">
+                Overall Rate
               </span>
-              <div className="flex items-baseline space-x-1 justify-end mt-0.5">
-                <span className="text-3xl font-black text-white tabular-nums">
-                  {overall.percentage}%
-                </span>
-              </div>
-              <p className="text-[10px] text-emerald-400 font-bold mt-0.5">
-                {overall.totalAttended} / {overall.totalConducted} Sessions Attended
-              </p>
+              <span className="text-2xl font-black text-white tabular-nums">
+                {overall.percentage}%
+              </span>
             </div>
 
             <button
               onClick={onOpenSyncExcel}
-              className="flex items-center space-x-2 px-4 py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-md transition active:scale-95"
+              className="flex items-center space-x-1.5 px-3.5 py-2.5 rounded-2xl bg-emerald-600 hover:bg-emerald-500 text-white font-bold text-xs shadow-sm transition"
             >
               <FileSpreadsheet className="w-4 h-4" />
-              <span>Upload Attendance (.xlsx)</span>
+              <span>Sync Excel</span>
             </button>
           </div>
         </div>
 
         {/* Aggregate Threshold Diagnostics */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-white/10 text-xs">
           <div>
-            <p className="text-slate-400 text-[11px]">Conducted Classes</p>
-            <p className="text-lg font-bold text-white mt-0.5">{overall.totalConducted} Sessions</p>
+            <p className="text-slate-400 text-[10px]">Conducted</p>
+            <p className="text-base font-bold text-white">{overall.totalConducted}</p>
           </div>
           <div>
-            <p className="text-slate-400 text-[11px]">Attended</p>
-            <p className="text-lg font-bold text-emerald-400 mt-0.5">{overall.totalAttended} Sessions</p>
+            <p className="text-slate-400 text-[10px]">Attended</p>
+            <p className="text-base font-bold text-emerald-400">{overall.totalAttended}</p>
           </div>
           <div>
-            <p className="text-slate-400 text-[11px]">Absences / Missed</p>
-            <p className="text-lg font-bold text-rose-400 mt-0.5">{overall.totalAbsent} Classes</p>
+            <p className="text-slate-400 text-[10px]">Absences</p>
+            <p className="text-base font-bold text-rose-400">{overall.totalAbsent}</p>
           </div>
           <div>
-            <p className="text-slate-400 text-[11px]">Recorded Lates</p>
-            <p className="text-lg font-bold text-amber-400 mt-0.5">{overall.totalLates} Instances</p>
+            <p className="text-slate-400 text-[10px]">Lates</p>
+            <p className="text-base font-bold text-amber-400">{overall.totalLates}</p>
           </div>
         </div>
       </div>

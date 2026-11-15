@@ -107,19 +107,14 @@ const MainContent: React.FC = () => {
         </main>
 
         {/* Executive Footer */}
-        <footer className="mt-auto px-8 py-4 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2 bg-white/50 dark:bg-[#0B1120]/50">
+        <footer className="mt-auto px-8 py-3.5 border-t border-slate-200 dark:border-slate-800 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-2 bg-white/50 dark:bg-[#0B1120]/50">
           <div className="flex items-center space-x-2">
-            <span className="font-bold text-hsb-navy dark:text-hsb-cyan">
-              HSB Jaipur
-            </span>
+            <span className="font-bold text-[#004B93] dark:text-[#38BDF8]">HSB Jaipur</span>
             <span>•</span>
-            <span>Harishankar Singhania School of Business</span>
-            <span>•</span>
-            <span>{student.program} — {student.rollNumber}</span>
+            <span>{student.name} ({student.rollNumber})</span>
           </div>
-          <div className="flex items-center space-x-2 font-mono text-[11px] text-slate-500">
-            <span className="w-2 h-2 rounded-full bg-emerald-500"></span>
-            <span>Academic Portal • Trimester II</span>
+          <div className="text-[11px] text-slate-400">
+            Trimester II (2026–28)
           </div>
         </footer>
       </div>

@@ -69,63 +69,53 @@ export const MarksGradebookView: React.FC = () => {
   return (
     <div className="space-y-6">
       {/* Executive Academic Standing Banner */}
-      <div className="p-6 sm:p-8 bg-gradient-to-r from-[#004B93] via-[#003870] to-[#002B5B] text-white rounded-3xl shadow-hsb-lg border border-white/10 relative overflow-hidden">
-        <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6">
+      <div className="p-5 sm:p-6 bg-gradient-to-r from-[#004B93] via-[#003870] to-[#002B5B] text-white rounded-3xl shadow-sm border border-white/10 relative overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center space-x-2 text-xs font-bold text-[#38BDF8] uppercase tracking-widest mb-1">
-              <Award className="w-4 h-4" />
-              <span>Trimester II Academic Transcript & Marks Forensics</span>
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-extrabold tracking-tight">
-              Academic Gradebook & CGPA Projection
+            <h2 className="text-xl sm:text-2xl font-extrabold tracking-tight">
+              Marks & Gradebook
             </h2>
-            <p className="text-xs text-slate-300 mt-1 max-w-xl">
-              Official credit-weighted CGPA computation for <span className="font-bold text-white">{student.name}</span> ({student.rollNumber}).
-              Starts completely empty — upload marks sheets or add evaluation components below.
+            <p className="text-xs text-slate-300 mt-0.5">
+              Course evaluations and CGPA calculation
             </p>
           </div>
 
           {/* Big CGPA Metric Box */}
-          <div className="flex items-center space-x-4 p-4 rounded-2xl bg-black/30 border border-white/10 shrink-0">
-            <div className="text-center sm:text-right">
-              <span className="text-[11px] font-bold uppercase tracking-wider text-hsb-cyan">
-                Trimester II GPA
+          <div className="flex items-center space-x-3 px-4 py-2.5 rounded-2xl bg-black/25 border border-white/10 shrink-0">
+            <div className="text-right">
+              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300 block">
+                Current CGPA
               </span>
-              <div className="flex items-baseline space-x-2 mt-0.5">
-                <span className="text-4xl font-black text-white tabular-nums">
-                  {cgpaStats.hasEvaluations ? cgpaStats.cgpa : '0.0'}
+              <div className="flex items-baseline space-x-1 justify-end">
+                <span className="text-2xl sm:text-3xl font-black text-white tabular-nums">
+                  {cgpaStats.hasEvaluations ? cgpaStats.cgpa : '—'}
                 </span>
-                <span className="text-sm font-semibold text-slate-300">/ 10.0</span>
+                <span className="text-xs text-slate-300">/ 10.0</span>
               </div>
-              <p className="text-xs font-bold text-emerald-400 mt-0.5">
-                {cgpaStats.hasEvaluations
-                  ? `${cgpaStats.overallPercentage}% Weighted Score`
-                  : 'No evaluations entered yet'}
-              </p>
             </div>
-            <div className="w-12 h-12 rounded-2xl bg-hsb-royal/40 text-hsb-cyan border border-hsb-cyan/30 flex items-center justify-center">
-              <GraduationCap className="w-7 h-7" />
+            <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center">
+              <GraduationCap className="w-5 h-5" />
             </div>
           </div>
         </div>
 
         {/* Sub-KPIs Row */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-6 border-t border-white/10 text-xs">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-white/10 text-xs">
           <div>
-            <p className="text-slate-400 text-[11px]">Enrolled Subjects</p>
-            <p className="text-lg font-bold text-white mt-0.5">8 Subjects</p>
+            <p className="text-slate-400 text-[10px]">Courses</p>
+            <p className="text-base font-bold text-white">8 Subjects</p>
           </div>
           <div>
-            <p className="text-slate-400 text-[11px]">Planned Credits</p>
-            <p className="text-lg font-bold text-white mt-0.5">16 Total Units</p>
+            <p className="text-slate-400 text-[10px]">Credits</p>
+            <p className="text-base font-bold text-white">16 Units</p>
           </div>
           <div>
-            <p className="text-slate-400 text-[11px]">Evaluations Logged</p>
-            <p className="text-lg font-bold text-hsb-cyan mt-0.5">{totalEvaluationsCount} Components</p>
+            <p className="text-slate-400 text-[10px]">Components</p>
+            <p className="text-base font-bold text-[#38BDF8]">{totalEvaluationsCount} Logged</p>
           </div>
           <div>
-            <p className="text-slate-400 text-[11px]">Target CGPA</p>
-            <p className="text-lg font-bold text-emerald-400 mt-0.5">{student.targetCGPA || 9.0} / 10.0</p>
+            <p className="text-slate-400 text-[10px]">Target</p>
+            <p className="text-base font-bold text-emerald-400">{student.targetCGPA || 9.0} / 10.0</p>
           </div>
         </div>
       </div>
