@@ -1,4 +1,4 @@
-import { StoredFileBlob, StoredFileMetadata } from '../types';
+import { StoredFileBlob, StoredFileMetadata, StorageQuotaInfo } from '../types';
 
 const DB_NAME = 'HSB_Jaipur_LMS_DB';
 const DB_VERSION = 1;
@@ -64,6 +64,27 @@ export const saveFileBlob = async (fileData: StoredFileBlob): Promise<void> => {
 };
 
 /**
+ * Stores multiple file blobs in a single fast, atomic transaction.
+ * Optimized for bulk uploads of dozens or hundreds of files.
+ */
+export const saveFileBlobsBatch = async (filesData: StoredFileBlob[]): Promise<void> => {
+  if (filesData.length === 0) return;
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORES.FILES, 'readwrite');
+    const store = transaction.objectStore(STORES.FILES);
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+    transaction.onabort = () => reject(transaction.error || new Error('Batch transaction aborted'));
+
+    for (const fileData of filesData) {
+      store.put(fileData);
+    }
+  });
+};
+
+/**
  * Retrieves the full file object including the binary Blob
  */
 export const getFileBlob = async (id: string): Promise<StoredFileBlob | null> => {
@@ -90,6 +111,25 @@ export const deleteFileBlob = async (id: string): Promise<void> => {
 
     request.onsuccess = () => resolve();
     request.onerror = () => reject(request.error);
+  });
+};
+
+/**
+ * Deletes multiple file blobs in a single batch transaction.
+ */
+export const deleteFileBlobsBatch = async (ids: string[]): Promise<void> => {
+  if (ids.length === 0) return;
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORES.FILES, 'readwrite');
+    const store = transaction.objectStore(STORES.FILES);
+
+    transaction.oncomplete = () => resolve();
+    transaction.onerror = () => reject(transaction.error);
+
+    for (const id of ids) {
+      store.delete(id);
+    }
   });
 };
 
@@ -167,11 +207,11 @@ export const getMeta = async <T>(key: string): Promise<T | null> => {
 };
 
 /**
- * Computes storage metrics for the user interface
+ * Computes storage metrics for the user interface, including high-capacity browser quota
  */
-export const getStorageUsage = async (): Promise<{ fileCount: number; totalBytes: number }> => {
+export const getStorageUsage = async (): Promise<StorageQuotaInfo> => {
   const db = await initDB();
-  return new Promise((resolve, reject) => {
+  const dbUsage = await new Promise<{ fileCount: number; totalBytes: number }>((resolve, reject) => {
     const transaction = db.transaction(STORES.FILES, 'readonly');
     const store = transaction.objectStore(STORES.FILES);
     const request = store.openCursor();
@@ -191,4 +231,53 @@ export const getStorageUsage = async (): Promise<{ fileCount: number; totalBytes
 
     request.onerror = () => reject(request.error);
   });
+
+  let quotaBytes: number | undefined;
+  let usageBytes: number | undefined;
+  let isPersistent: boolean | undefined;
+
+  try {
+    if (typeof navigator !== 'undefined' && navigator.storage) {
+      if (navigator.storage.estimate) {
+        const estimate = await navigator.storage.estimate();
+        quotaBytes = estimate.quota;
+        usageBytes = estimate.usage;
+      }
+      if (navigator.storage.persisted) {
+        isPersistent = await navigator.storage.persisted();
+      }
+    }
+  } catch (err) {
+    console.warn('Storage estimate check failed:', err);
+  }
+
+  const availableBytes =
+    quotaBytes !== undefined && usageBytes !== undefined
+      ? Math.max(0, quotaBytes - usageBytes)
+      : undefined;
+
+  return {
+    fileCount: dbUsage.fileCount,
+    totalBytes: dbUsage.totalBytes,
+    quotaBytes,
+    usageBytes,
+    availableBytes,
+    isPersistent,
+  };
+};
+
+/**
+ * Requests persistent storage from the browser.
+ * Removes automatic eviction and grants access to high-capacity disk storage (up to dozens/hundreds of GBs).
+ */
+export const requestStoragePersistence = async (): Promise<boolean> => {
+  try {
+    if (typeof navigator !== 'undefined' && navigator.storage && navigator.storage.persist) {
+      const granted = await navigator.storage.persist();
+      return granted;
+    }
+  } catch (err) {
+    console.warn('Storage persistence request failed:', err);
+  }
+  return false;
 };

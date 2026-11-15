@@ -12,16 +12,21 @@ import {
   TimetableDay,
   ExamReminder,
   SessionAttendanceStatus,
+  StorageQuotaInfo,
+  BatchUploadProgress,
 } from '../types';
 import {
   initDB,
   saveFileBlob,
+  saveFileBlobsBatch,
   getFileBlob,
   deleteFileBlob,
+  deleteFileBlobsBatch,
   getAllFileMetadata,
   setMeta,
   getMeta,
   getStorageUsage,
+  requestStoragePersistence,
 } from '../db/indexedDB';
 import {
   INITIAL_STUDENT,
@@ -71,7 +76,7 @@ interface LMSContextType {
   examReminders: ExamReminder[];
   assignments: Assignment[];
   files: StoredFileMetadata[];
-  storageUsage: { fileCount: number; totalBytes: number };
+  storageUsage: StorageQuotaInfo;
   isLoading: boolean;
 
   // Excel Master Sync
@@ -93,8 +98,17 @@ interface LMSContextType {
 
   // File Vault Actions (IndexedDB Blobs)
   uploadFile: (file: File, subjectId: string, moduleTag: string, assignmentId?: string) => Promise<StoredFileMetadata>;
+  uploadFilesBatch: (
+    files: File[],
+    subjectId: string,
+    moduleTag: string,
+    onProgress?: (p: BatchUploadProgress) => void
+  ) => Promise<StoredFileMetadata[]>;
   deleteFile: (fileId: string) => Promise<void>;
+  deleteFilesBatch: (fileIds: string[]) => Promise<void>;
   loadFileBlob: (fileId: string) => Promise<StoredFileBlob | null>;
+  refreshStorageQuota: () => Promise<StorageQuotaInfo>;
+  requestPersistentStorage: () => Promise<boolean>;
 
   // Assignment Actions
   addAssignment: (assignmentData: Omit<Assignment, 'id'>) => Promise<Assignment>;
@@ -158,7 +172,7 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const [examReminders, setExamReminders] = useState<ExamReminder[]>([]);
   const [assignments, setAssignments] = useState<Assignment[]>([]);
   const [files, setFiles] = useState<StoredFileMetadata[]>([]);
-  const [storageUsage, setStorageUsage] = useState({ fileCount: 0, totalBytes: 0 });
+  const [storageUsage, setStorageUsage] = useState<StorageQuotaInfo>({ fileCount: 0, totalBytes: 0 });
   const [isLoading, setIsLoading] = useState(true);
 
   // Modals
@@ -225,6 +239,9 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
 
       const fileMetaList = await getAllFileMetadata();
       setFiles(fileMetaList);
+
+      // Attempt to secure high-capacity persistent storage (avoids browser eviction)
+      await requestStoragePersistence().catch(() => false);
 
       const usage = await getStorageUsage();
       setStorageUsage(usage);
@@ -414,6 +431,19 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     await setMeta('exam_reminders_t2', updated);
   };
 
+  // Storage Quota & Persistence Utilities
+  const refreshStorageQuota = async (): Promise<StorageQuotaInfo> => {
+    const usage = await getStorageUsage();
+    setStorageUsage(usage);
+    return usage;
+  };
+
+  const requestPersistentStorage = async (): Promise<boolean> => {
+    const granted = await requestStoragePersistence();
+    await refreshStorageQuota();
+    return granted;
+  };
+
   // File Vault Actions
   const uploadFile = async (
     file: File,
@@ -438,8 +468,7 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     const updatedFiles = await getAllFileMetadata();
     setFiles(updatedFiles);
 
-    const usage = await getStorageUsage();
-    setStorageUsage(usage);
+    await refreshStorageQuota();
 
     return {
       id: newFile.id,
@@ -453,11 +482,75 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     };
   };
 
+  const uploadFilesBatch = async (
+    filesToUpload: File[],
+    subjectId: string,
+    moduleTag: string,
+    onProgress?: (p: BatchUploadProgress) => void
+  ): Promise<StoredFileMetadata[]> => {
+    const total = filesToUpload.length;
+    if (total === 0) return [];
+
+    const newBlobs: StoredFileBlob[] = [];
+    const newMetas: StoredFileMetadata[] = [];
+
+    for (let i = 0; i < total; i++) {
+      const file = filesToUpload[i];
+      if (onProgress) {
+        onProgress({
+          current: i + 1,
+          total,
+          currentFileName: file.name,
+          currentFileSize: file.size,
+          percent: Math.round(((i + 1) / total) * 100),
+        });
+      }
+
+      const id = `file-${Date.now()}-${Math.random().toString(36).substr(2, 6)}-${i}`;
+      const item: StoredFileBlob = {
+        id,
+        subjectId,
+        name: file.name,
+        size: file.size,
+        type: file.type || 'application/octet-stream',
+        moduleTag: moduleTag || 'General Coursepack',
+        uploadDate: new Date().toISOString(),
+        blob: file,
+      };
+
+      newBlobs.push(item);
+      newMetas.push({
+        id: item.id,
+        subjectId: item.subjectId,
+        name: item.name,
+        size: item.size,
+        type: item.type,
+        moduleTag: item.moduleTag,
+        uploadDate: item.uploadDate,
+      });
+    }
+
+    await saveFileBlobsBatch(newBlobs);
+
+    const updatedFiles = await getAllFileMetadata();
+    setFiles(updatedFiles);
+
+    await refreshStorageQuota();
+
+    return newMetas;
+  };
+
   const deleteFile = async (fileId: string): Promise<void> => {
     await deleteFileBlob(fileId);
     setFiles((prev) => prev.filter((f) => f.id !== fileId));
-    const usage = await getStorageUsage();
-    setStorageUsage(usage);
+    await refreshStorageQuota();
+  };
+
+  const deleteFilesBatch = async (fileIds: string[]): Promise<void> => {
+    if (fileIds.length === 0) return;
+    await deleteFileBlobsBatch(fileIds);
+    setFiles((prev) => prev.filter((f) => !fileIds.includes(f.id)));
+    await refreshStorageQuota();
   };
 
   const loadFileBlob = async (fileId: string): Promise<StoredFileBlob | null> => {
@@ -741,8 +834,12 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         addExamReminder,
         deleteExamReminder,
         uploadFile,
+        uploadFilesBatch,
         deleteFile,
+        deleteFilesBatch,
         loadFileBlob,
+        refreshStorageQuota,
+        requestPersistentStorage,
         addAssignment,
         updateAssignment,
         deleteAssignment,

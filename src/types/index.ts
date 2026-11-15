@@ -65,6 +65,23 @@ export interface StoredFileBlob extends StoredFileMetadata {
   blob: Blob;
 }
 
+export interface StorageQuotaInfo {
+  fileCount: number;
+  totalBytes: number;
+  quotaBytes?: number;
+  usageBytes?: number;
+  availableBytes?: number;
+  isPersistent?: boolean;
+}
+
+export interface BatchUploadProgress {
+  current: number;
+  total: number;
+  currentFileName: string;
+  currentFileSize: number;
+  percent: number;
+}
+
 export interface Assignment {
   id: string;
   subjectId: string;

@@ -200,14 +200,22 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSyncExcel }) => {
       {/* Bottom Sticky Footer: Storage stats, Backup & Reset */}
       <div className="p-3 border-t border-slate-200 dark:border-slate-800 bg-[#F4F7FA]/70 dark:bg-[#0B1426]/70 space-y-2">
         {/* Storage footprint */}
-        <div className="flex items-center justify-between px-2 text-[11px] text-[#334155] dark:text-slate-300">
-          <span className="flex items-center space-x-1 text-slate-500 dark:text-slate-400">
-            <HardDrive className="w-3.5 h-3.5 text-[#004B93] dark:text-[#38BDF8]" />
-            <span>Local Vault:</span>
-          </span>
-          <span className="font-mono text-[#004B93] dark:text-[#38BDF8] font-bold">
-            {formatFileSize(storageUsage.totalBytes)} ({storageUsage.fileCount} files)
-          </span>
+        <div className="px-2 py-1 space-y-1">
+          <div className="flex items-center justify-between text-[11px] text-[#334155] dark:text-slate-300">
+            <span className="flex items-center space-x-1 text-slate-500 dark:text-slate-400">
+              <HardDrive className="w-3.5 h-3.5 text-[#004B93] dark:text-[#38BDF8]" />
+              <span>Offline Vault:</span>
+            </span>
+            <span className="font-mono text-[#004B93] dark:text-[#38BDF8] font-bold">
+              {formatFileSize(storageUsage.totalBytes)} ({storageUsage.fileCount} {storageUsage.fileCount === 1 ? 'file' : 'files'})
+            </span>
+          </div>
+          {storageUsage.quotaBytes && (
+            <div className="flex items-center justify-between text-[10px] text-slate-400 font-medium">
+              <span>IndexedDB Quota:</span>
+              <span className="font-mono">~{formatFileSize(storageUsage.quotaBytes)}</span>
+            </div>
+          )}
         </div>
 
         {/* Action Buttons: Backup & Sync + Dark Mode Toggle */}

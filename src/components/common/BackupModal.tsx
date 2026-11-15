@@ -136,7 +136,7 @@ export const BackupModal: React.FC = () => {
                 100% Offline
               </span>
             </div>
-            <div className="grid grid-cols-3 gap-2 mt-3 pt-3 border-t border-[#D6E6F5] dark:border-slate-700/60 text-center">
+            <div className="grid grid-cols-4 gap-2 mt-3 pt-3 border-t border-[#D6E6F5] dark:border-slate-700/60 text-center">
               <div>
                 <p className="text-[11px] text-slate-500 dark:text-slate-400">Courses</p>
                 <p className="text-base font-extrabold text-[#0F172A] dark:text-white tabular-nums">
@@ -150,9 +150,15 @@ export const BackupModal: React.FC = () => {
                 </p>
               </div>
               <div>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400">Blob Footprint</p>
-                <p className="text-base font-extrabold text-[#004B93] dark:text-[#38BDF8] tabular-nums">
-                  {formatFileSize(storageUsage.totalBytes)} ({storageUsage.fileCount} files)
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Vault Blobs</p>
+                <p className="text-xs sm:text-sm font-extrabold text-[#004B93] dark:text-[#38BDF8] tabular-nums">
+                  {formatFileSize(storageUsage.totalBytes)} ({storageUsage.fileCount})
+                </p>
+              </div>
+              <div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400">Disk Quota</p>
+                <p className="text-xs sm:text-sm font-extrabold text-slate-700 dark:text-slate-200 tabular-nums">
+                  {storageUsage.quotaBytes ? `~${formatFileSize(storageUsage.quotaBytes)}` : 'High'}
                 </p>
               </div>
             </div>
