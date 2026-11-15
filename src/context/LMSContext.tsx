@@ -141,6 +141,7 @@ interface LMSContextType {
   exportBackup: (includeFiles?: boolean) => Promise<void>;
   importBackup: (fileContent: string) => Promise<void>;
   resetToInitialRoster: () => Promise<void>;
+  reloadOfficialAttendance: () => Promise<void>;
   clearAllData: () => Promise<void>;
 
   // Preview Modal
@@ -213,10 +214,19 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       let storedAssignments = await getMeta<Assignment[]>('assignments_t2');
       let storedStudent = await getMeta<StudentProfile>('student_t2');
 
-      const CURRENT_DATA_VERSION = '2026-11-15-v2';
+      const CURRENT_DATA_VERSION = '2026-11-15-v6';
       const savedVersion = await getMeta<string>('hsb_data_version');
 
-      if (!storedSubjects || storedSubjects.length === 0 || savedVersion !== CURRENT_DATA_VERSION) {
+      const existingConducted = (storedAttendance || []).reduce((acc, sub) => {
+        return acc + (sub.sessions ? sub.sessions.filter((s) => s.isConducted).length : 0);
+      }, 0);
+
+      if (
+        !storedSubjects ||
+        storedSubjects.length === 0 ||
+        savedVersion !== CURRENT_DATA_VERSION ||
+        existingConducted < 57
+      ) {
         // Pre-configure the 8 Trimester II subjects, updated attendance & timetable
         storedSubjects = INITIAL_SUBJECTS;
         storedAttendance = INITIAL_ATTENDANCE;
@@ -801,6 +811,16 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     setFiles(currentFiles);
   };
 
+  const reloadOfficialAttendance = async () => {
+    setAttendance(INITIAL_ATTENDANCE);
+    setTimetable(getInitialTimetable());
+    await setMeta('attendance_t2', INITIAL_ATTENDANCE);
+    await setMeta('timetable_t2', getInitialTimetable());
+    await setMeta('hsb_data_version', '2026-11-15-v6');
+    playStudyChime();
+    triggerStudyConfetti();
+  };
+
   const clearAllData = async () => {
     await clearAllLocalData();
     setSubjects(INITIAL_SUBJECTS);
@@ -868,6 +888,7 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         exportBackup,
         importBackup,
         resetToInitialRoster,
+        reloadOfficialAttendance,
         clearAllData,
         previewFile,
         setPreviewFile,
