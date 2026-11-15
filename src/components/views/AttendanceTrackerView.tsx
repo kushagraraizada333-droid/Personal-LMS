@@ -22,6 +22,8 @@ import {
 } from 'lucide-react';
 import { playStudyChime, playSoftTick } from '../../utils/sound';
 import { BATCH_ATTENDANCE_ROSTER } from '../../db/batchRosterData';
+import { AttendanceSimulator } from '../simulation/AttendanceSimulator';
+import { Sliders } from 'lucide-react';
 
 interface AttendanceTrackerViewProps {
   onOpenSyncExcel: () => void;
@@ -34,6 +36,7 @@ export const AttendanceTrackerView: React.FC<AttendanceTrackerViewProps> = ({
     useLMS();
 
   const [activeTab, setActiveTab] = useState<'personal' | 'batch'>('personal');
+  const [isSimulatorOpen, setIsSimulatorOpen] = useState<boolean>(false);
   const [filterCode, setFilterCode] = useState<string>('all');
   const [batchSearch, setBatchSearch] = useState<string>('');
 
@@ -126,6 +129,21 @@ export const AttendanceTrackerView: React.FC<AttendanceTrackerViewProps> = ({
             </div>
 
             <button
+              onClick={() => {
+                setIsSimulatorOpen(!isSimulatorOpen);
+                playSoftTick();
+              }}
+              className={`flex items-center space-x-1.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition border ${
+                isSimulatorOpen
+                  ? 'bg-indigo-600 text-white border-indigo-400 shadow-md ring-2 ring-indigo-400/40'
+                  : 'bg-white/15 hover:bg-white/25 text-white border-white/20'
+              }`}
+            >
+              <Sliders className="w-4 h-4 text-indigo-200" />
+              <span>Simulator Mode</span>
+            </button>
+
+            <button
               onClick={handleForceReload}
               title="Force reload latest official attendance"
               className="p-2.5 rounded-2xl bg-white/15 hover:bg-white/25 text-white text-xs font-bold transition border border-white/20"
@@ -165,6 +183,9 @@ export const AttendanceTrackerView: React.FC<AttendanceTrackerViewProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Simulator Mode Panel */}
+      {isSimulatorOpen && <AttendanceSimulator />}
 
       {/* Main Tabs: My Attendance vs. Batch Roster (All 39 Students) */}
       <div className="flex items-center justify-between border-b border-slate-200 dark:border-slate-800">

@@ -1,6 +1,7 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { useLMS } from '../../context/LMSContext';
 import { formatFileSize, formatDate } from '../../utils/formatters';
+import { DocumentTag } from '../../types';
 import {
   X,
   Download,
@@ -15,21 +16,68 @@ import {
   Archive,
   ZoomIn,
   ZoomOut,
-  Maximize2,
+  BookOpen,
+  Check,
+  Copy,
+  Clock,
+  List,
+  PanelRightClose,
+  PanelRightOpen,
+  Tag,
+  Sparkles,
 } from 'lucide-react';
 
+const DOCUMENT_TAGS: DocumentTag[] = [
+  'Lecture Slides',
+  'Case Study',
+  'Assignment Brief',
+  'My Submission',
+  'General',
+];
+
 export const FilePreviewModal: React.FC = () => {
-  const { previewFile, setPreviewFile } = useLMS();
+  const { previewFile, setPreviewFile, updateFileScratchpad, updateFileTag } = useLMS();
   const [objectUrl, setObjectUrl] = useState<string | null>(null);
   const [textContent, setTextContent] = useState<string | null>(null);
   const [isZoomed, setIsZoomed] = useState(false);
+  const [isScratchpadOpen, setIsScratchpadOpen] = useState(true);
+
+  // Scratchpad state
+  const [notes, setNotes] = useState<string>('');
+  const [saveStatus, setSaveStatus] = useState<'saved' | 'saving'>('saved');
+  const [copyFeedback, setCopyFeedback] = useState(false);
+  const isFirstRender = useRef(true);
+
+  // Sync scratchpad notes when previewFile changes
+  useEffect(() => {
+    if (previewFile) {
+      setNotes(previewFile.scratchpadNotes ?? '');
+      isFirstRender.current = true;
+    }
+  }, [previewFile?.id]);
+
+  // Debounced auto-save scratchpad
+  useEffect(() => {
+    if (isFirstRender.current) {
+      isFirstRender.current = false;
+      return;
+    }
+    if (!previewFile) return;
+
+    setSaveStatus('saving');
+    const timer = setTimeout(() => {
+      updateFileScratchpad(previewFile.id, notes);
+      setSaveStatus('saved');
+    }, 400);
+
+    return () => clearTimeout(timer);
+  }, [notes, previewFile?.id]);
 
   useEffect(() => {
     if (previewFile && previewFile.blob) {
       const url = URL.createObjectURL(previewFile.blob);
       setObjectUrl(url);
 
-      // Check if text/csv file
       const name = previewFile.name.toLowerCase();
       const type = previewFile.type.toLowerCase();
       const isText =
@@ -46,7 +94,6 @@ export const FilePreviewModal: React.FC = () => {
         type.startsWith('text/');
 
       if (isText && previewFile.size < 5 * 1024 * 1024) {
-        // Read text if < 5MB
         previewFile.blob
           .text()
           .then((text) => setTextContent(text))
@@ -87,12 +134,27 @@ export const FilePreviewModal: React.FC = () => {
     document.body.removeChild(a);
   };
 
+  const handleCopyNotes = () => {
+    if (!notes.trim()) return;
+    navigator.clipboard.writeText(notes);
+    setCopyFeedback(true);
+    setTimeout(() => setCopyFeedback(false), 2000);
+  };
+
+  const insertBullet = () => {
+    setNotes((prev) => (prev ? `${prev}\n• ` : '• '));
+  };
+
+  const insertTimestamp = () => {
+    const now = new Date();
+    const timeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    setNotes((prev) => (prev ? `${prev}\n[${timeStr}] ` : `[${timeStr}] `));
+  };
+
   const nameLower = previewFile.name.toLowerCase();
   const typeLower = previewFile.type.toLowerCase();
 
-  const isPdf =
-    typeLower.includes('pdf') || nameLower.endsWith('.pdf');
-
+  const isPdf = typeLower.includes('pdf') || nameLower.endsWith('.pdf');
   const isVideo =
     typeLower.startsWith('video/') ||
     nameLower.endsWith('.mp4') ||
@@ -159,32 +221,71 @@ export const FilePreviewModal: React.FC = () => {
     return <File className="w-5 h-5 text-slate-600 dark:text-slate-300" />;
   };
 
+  const wordCount = notes.trim() ? notes.trim().split(/\s+/).length : 0;
+
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-3 sm:p-6 animate-in fade-in duration-200">
-      <div className="relative w-full max-w-6xl h-[90vh] bg-white dark:bg-[#111827] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden">
+    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/75 backdrop-blur-sm p-2 sm:p-4 md:p-6 animate-in fade-in duration-200">
+      <div className="relative w-full max-w-7xl h-[94vh] bg-white dark:bg-[#111827] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 flex flex-col overflow-hidden">
         {/* Header */}
-        <div className="flex items-center justify-between px-6 py-4 border-b border-slate-200 dark:border-slate-800 bg-[#F4F7FA] dark:bg-[#0F172A] shrink-0">
-          <div className="flex items-center space-x-3 overflow-hidden">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between px-5 py-3.5 border-b border-slate-200 dark:border-slate-800 bg-[#F4F7FA] dark:bg-[#0F172A] gap-3 shrink-0">
+          <div className="flex items-center space-x-3 overflow-hidden min-w-0">
             <div className="p-2.5 rounded-xl bg-[#EBF3FA] dark:bg-slate-800 shadow-sm shrink-0">
               {getHeaderIcon()}
             </div>
-            <div className="truncate">
-              <h3 className="text-sm sm:text-base font-extrabold text-[#0F172A] dark:text-white truncate">
-                {previewFile.name}
-              </h3>
-              <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <div className="truncate min-w-0">
+              <div className="flex items-center space-x-2">
+                <h3 className="text-sm sm:text-base font-extrabold text-[#0F172A] dark:text-white truncate">
+                  {previewFile.name}
+                </h3>
+              </div>
+              <div className="flex items-center space-x-2 text-xs text-slate-500 dark:text-slate-400 mt-0.5 flex-wrap gap-1">
                 <span className="font-bold text-[#004B93] dark:text-[#38BDF8]">
                   {previewFile.moduleTag}
                 </span>
                 <span>•</span>
                 <span className="font-mono font-semibold">{formatFileSize(previewFile.size)}</span>
                 <span>•</span>
-                <span>Uploaded {formatDate(previewFile.uploadDate)}</span>
+                <span>{formatDate(previewFile.uploadDate)}</span>
               </div>
             </div>
           </div>
 
-          <div className="flex items-center space-x-2 shrink-0">
+          <div className="flex items-center space-x-2 shrink-0 self-end sm:self-auto flex-wrap gap-1.5">
+            {/* Quick Tag Selector */}
+            <div className="flex items-center space-x-1.5 bg-white dark:bg-slate-800 px-2 py-1 rounded-xl border border-slate-200 dark:border-slate-700">
+              <Tag className="w-3.5 h-3.5 text-[#004B93] dark:text-[#38BDF8]" />
+              <select
+                value={previewFile.tag ?? 'General'}
+                onChange={(e) => updateFileTag(previewFile.id, e.target.value as DocumentTag)}
+                className="text-xs font-bold bg-transparent text-slate-800 dark:text-slate-200 cursor-pointer focus:outline-none"
+                title="Document Classification Tag"
+              >
+                {DOCUMENT_TAGS.map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Split Screen Scratchpad Toggle */}
+            <button
+              onClick={() => setIsScratchpadOpen(!isScratchpadOpen)}
+              className={`inline-flex items-center space-x-1.5 px-3 py-1.5 text-xs font-bold rounded-xl transition border ${
+                isScratchpadOpen
+                  ? 'bg-[#EBF3FA] dark:bg-slate-800 text-[#004B93] dark:text-[#38BDF8] border-[#D6E6F5] dark:border-slate-700'
+                  : 'bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-50'
+              }`}
+              title={isScratchpadOpen ? 'Hide Case & Lecture Scratchpad' : 'Show Case & Lecture Scratchpad'}
+            >
+              {isScratchpadOpen ? (
+                <PanelRightClose className="w-3.5 h-3.5" />
+              ) : (
+                <PanelRightOpen className="w-3.5 h-3.5" />
+              )}
+              <span>{isScratchpadOpen ? 'Hide Notes' : 'Open Scratchpad'}</span>
+            </button>
+
             {objectUrl && (
               <a
                 href={objectUrl}
@@ -215,138 +316,221 @@ export const FilePreviewModal: React.FC = () => {
           </div>
         </div>
 
-        {/* Content Viewer Body */}
-        <div className="flex-1 bg-slate-100 dark:bg-[#0B1120] relative overflow-auto flex items-center justify-center p-4">
-          {/* PDF Viewer */}
-          {isPdf && objectUrl && (
-            <iframe
-              src={objectUrl}
-              title={previewFile.name}
-              className="w-full h-full border-none rounded-xl bg-white shadow-sm"
-            />
-          )}
-
-          {/* Video Player */}
-          {isVideo && objectUrl && (
-            <div className="w-full max-w-4xl max-h-full flex flex-col items-center justify-center bg-black rounded-2xl overflow-hidden shadow-2xl">
-              <video
-                controls
-                autoPlay={false}
+        {/* Split Screen Layout */}
+        <div className="flex-1 flex overflow-hidden">
+          {/* Left Pane: Document Viewer */}
+          <div className="flex-1 bg-slate-100 dark:bg-[#0B1120] relative overflow-auto flex items-center justify-center p-3 sm:p-4 min-w-0">
+            {/* PDF Viewer */}
+            {isPdf && objectUrl && (
+              <iframe
                 src={objectUrl}
-                className="w-full max-h-[75vh] object-contain"
-              >
-                Your browser does not support the video tag.
-              </video>
-              <div className="w-full px-4 py-2 bg-slate-900/90 text-xs text-slate-300 flex items-center justify-between">
-                <span>{previewFile.name}</span>
-                <span className="font-mono">{formatFileSize(previewFile.size)}</span>
-              </div>
-            </div>
-          )}
-
-          {/* Audio Player */}
-          {isAudio && objectUrl && (
-            <div className="w-full max-w-lg p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 text-center space-y-6">
-              <div className="w-20 h-20 mx-auto rounded-3xl bg-pink-50 dark:bg-pink-950/40 text-pink-600 flex items-center justify-center shadow-inner">
-                <Music className="w-10 h-10" />
-              </div>
-              <div>
-                <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
-                  {previewFile.name}
-                </h4>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                  Audio Recording • {formatFileSize(previewFile.size)}
-                </p>
-              </div>
-              <audio controls src={objectUrl} className="w-full">
-                Your browser does not support the audio element.
-              </audio>
-            </div>
-          )}
-
-          {/* Image Viewer */}
-          {isImage && objectUrl && (
-            <div className="relative w-full h-full flex flex-col items-center justify-center overflow-auto p-4">
-              <div className="absolute top-4 right-4 z-10 flex items-center space-x-1.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-1.5 rounded-xl shadow-md border border-slate-200 dark:border-slate-700">
-                <button
-                  onClick={() => setIsZoomed((prev) => !prev)}
-                  className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
-                  title={isZoomed ? 'Fit to Screen' : 'View Actual Size'}
-                >
-                  {isZoomed ? <ZoomOut className="w-4 h-4" /> : <ZoomIn className="w-4 h-4" />}
-                </button>
-              </div>
-              <img
-                src={objectUrl}
-                alt={previewFile.name}
-                className={`transition-all duration-200 rounded-xl shadow-xl object-contain ${
-                  isZoomed ? 'max-w-none' : 'max-h-[75vh] max-w-full'
-                }`}
+                title={previewFile.name}
+                className="w-full h-full border-none rounded-xl bg-white shadow-sm"
               />
-            </div>
-          )}
+            )}
 
-          {/* Text / CSV / Code Viewer */}
-          {textContent !== null && !isPdf && !isVideo && !isAudio && !isImage && (
-            <div className="w-full h-full bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col shadow-inner">
-              <div className="px-4 py-2 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
-                <span className="font-mono">{previewFile.name}</span>
-                <span>{textContent.split('\n').length} lines • {formatFileSize(previewFile.size)}</span>
-              </div>
-              <pre className="flex-1 p-4 font-mono text-xs text-slate-800 dark:text-slate-200 overflow-auto whitespace-pre-wrap leading-relaxed select-text">
-                {textContent}
-              </pre>
-            </div>
-          )}
-
-          {/* Fallback for Documents, Spreadsheets, Presentations, Archives */}
-          {!isPdf &&
-            !isVideo &&
-            !isAudio &&
-            !isImage &&
-            textContent === null && (
-              <div className="max-w-md w-full p-8 text-center bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 mx-4">
-                <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-[#EBF3FA] dark:bg-slate-800 border border-[#D6E6F5] dark:border-slate-700/60 flex items-center justify-center text-[#004B93] dark:text-[#38BDF8]">
-                  {isPpt ? (
-                    <Presentation className="w-10 h-10 text-amber-600" />
-                  ) : isExcel ? (
-                    <FileSpreadsheet className="w-10 h-10 text-emerald-600" />
-                  ) : isDoc ? (
-                    <FileText className="w-10 h-10 text-blue-600" />
-                  ) : isArchive ? (
-                    <Archive className="w-10 h-10 text-orange-600" />
-                  ) : (
-                    <File className="w-10 h-10" />
-                  )}
-                </div>
-
-                <h4 className="text-lg font-extrabold text-slate-900 dark:text-white mb-2">
-                  {isPpt
-                    ? 'PowerPoint Presentation'
-                    : isExcel
-                    ? 'Excel Spreadsheet'
-                    : isDoc
-                    ? 'Word Document'
-                    : isArchive
-                    ? 'Archive File (ZIP/RAR/7Z)'
-                    : 'Course Resource File'}
-                </h4>
-
-                <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
-                  This <span className="font-bold text-slate-700 dark:text-slate-300">.{previewFile.name.split('.').pop()?.toUpperCase()}</span> file is stored offline as a binary Blob in your browser's IndexedDB. Download or open in your native desktop application for full fidelity.
-                </p>
-
-                <div className="flex flex-col sm:flex-row justify-center gap-3">
-                  <button
-                    onClick={handleDownload}
-                    className="inline-flex items-center justify-center space-x-2 px-6 py-2.5 rounded-xl bg-[#004B93] hover:bg-[#003870] text-white font-bold text-xs shadow-md transition"
-                  >
-                    <Download className="w-4 h-4" />
-                    <span>Download Local File ({formatFileSize(previewFile.size)})</span>
-                  </button>
+            {/* Video Player */}
+            {isVideo && objectUrl && (
+              <div className="w-full max-w-4xl max-h-full flex flex-col items-center justify-center bg-black rounded-2xl overflow-hidden shadow-2xl">
+                <video
+                  controls
+                  autoPlay={false}
+                  src={objectUrl}
+                  className="w-full max-h-[75vh] object-contain"
+                >
+                  Your browser does not support the video tag.
+                </video>
+                <div className="w-full px-4 py-2 bg-slate-900/90 text-xs text-slate-300 flex items-center justify-between">
+                  <span>{previewFile.name}</span>
+                  <span className="font-mono">{formatFileSize(previewFile.size)}</span>
                 </div>
               </div>
             )}
+
+            {/* Audio Player */}
+            {isAudio && objectUrl && (
+              <div className="w-full max-w-lg p-8 bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 text-center space-y-6">
+                <div className="w-20 h-20 mx-auto rounded-3xl bg-pink-50 dark:bg-pink-950/40 text-pink-600 flex items-center justify-center shadow-inner">
+                  <Music className="w-10 h-10" />
+                </div>
+                <div>
+                  <h4 className="text-base font-extrabold text-slate-900 dark:text-white">
+                    {previewFile.name}
+                  </h4>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Audio Recording • {formatFileSize(previewFile.size)}
+                  </p>
+                </div>
+                <audio controls src={objectUrl} className="w-full">
+                  Your browser does not support the audio element.
+                </audio>
+              </div>
+            )}
+
+            {/* Image Viewer */}
+            {isImage && objectUrl && (
+              <div className="relative w-full h-full flex flex-col items-center justify-center overflow-auto p-4">
+                <div className="absolute top-4 right-4 z-10 flex items-center space-x-1.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md p-1.5 rounded-xl shadow-md border border-slate-200 dark:border-slate-700">
+                  <button
+                    onClick={() => setIsZoomed((prev) => !prev)}
+                    className="p-1.5 rounded-lg text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    title={isZoomed ? 'Fit to Screen' : 'View Actual Size'}
+                  >
+                    {isZoomed ? <ZoomOut className="w-4 h-4" /> : <ZoomIn className="w-4 h-4" />}
+                  </button>
+                </div>
+                <img
+                  src={objectUrl}
+                  alt={previewFile.name}
+                  className={`transition-all duration-200 rounded-xl shadow-xl object-contain ${
+                    isZoomed ? 'max-w-none' : 'max-h-[75vh] max-w-full'
+                  }`}
+                />
+              </div>
+            )}
+
+            {/* Text / CSV / Code Viewer */}
+            {textContent !== null && !isPdf && !isVideo && !isAudio && !isImage && (
+              <div className="w-full h-full bg-white dark:bg-slate-950 rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden flex flex-col shadow-inner">
+                <div className="px-4 py-2 bg-slate-100 dark:bg-slate-900 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500">
+                  <span className="font-mono">{previewFile.name}</span>
+                  <span>{textContent.split('\n').length} lines • {formatFileSize(previewFile.size)}</span>
+                </div>
+                <pre className="flex-1 p-4 font-mono text-xs text-slate-800 dark:text-slate-200 overflow-auto whitespace-pre-wrap leading-relaxed select-text">
+                  {textContent}
+                </pre>
+              </div>
+            )}
+
+            {/* Fallback for Documents, Spreadsheets, Presentations, Archives */}
+            {!isPdf &&
+              !isVideo &&
+              !isAudio &&
+              !isImage &&
+              textContent === null && (
+                <div className="max-w-md w-full p-8 text-center bg-white dark:bg-slate-900 rounded-3xl shadow-xl border border-slate-200 dark:border-slate-800 mx-4">
+                  <div className="w-20 h-20 mx-auto mb-4 rounded-3xl bg-[#EBF3FA] dark:bg-slate-800 border border-[#D6E6F5] dark:border-slate-700/60 flex items-center justify-center text-[#004B93] dark:text-[#38BDF8]">
+                    {isPpt ? (
+                      <Presentation className="w-10 h-10 text-amber-600" />
+                    ) : isExcel ? (
+                      <FileSpreadsheet className="w-10 h-10 text-emerald-600" />
+                    ) : isDoc ? (
+                      <FileText className="w-10 h-10 text-blue-600" />
+                    ) : isArchive ? (
+                      <Archive className="w-10 h-10 text-orange-600" />
+                    ) : (
+                      <File className="w-10 h-10" />
+                    )}
+                  </div>
+
+                  <h4 className="text-lg font-extrabold text-slate-900 dark:text-white mb-2">
+                    {isPpt
+                      ? 'PowerPoint Presentation'
+                      : isExcel
+                      ? 'Excel Spreadsheet'
+                      : isDoc
+                      ? 'Word Document'
+                      : isArchive
+                      ? 'Archive File (ZIP/RAR/7Z)'
+                      : 'Course Resource File'}
+                  </h4>
+
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mb-6 leading-relaxed">
+                    This <span className="font-bold text-slate-700 dark:text-slate-300">.{previewFile.name.split('.').pop()?.toUpperCase()}</span> file is stored offline as a binary Blob in your browser's IndexedDB. Download or open in your native desktop application for full fidelity.
+                  </p>
+
+                  <div className="flex flex-col sm:flex-row justify-center gap-3">
+                    <button
+                      onClick={handleDownload}
+                      className="inline-flex items-center justify-center space-x-2 px-6 py-2.5 rounded-xl bg-[#004B93] hover:bg-[#003870] text-white font-bold text-xs shadow-md transition"
+                    >
+                      <Download className="w-4 h-4" />
+                      <span>Download Local File ({formatFileSize(previewFile.size)})</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+          </div>
+
+          {/* Right Pane: Persistent Case & Lecture Scratchpad */}
+          {isScratchpadOpen && (
+            <div className="w-80 sm:w-96 lg:w-[400px] h-full border-l border-slate-200 dark:border-slate-800 bg-white dark:bg-[#0F172A] flex flex-col shrink-0 animate-in slide-in-from-right duration-200">
+              {/* Scratchpad Header */}
+              <div className="p-3.5 border-b border-slate-200 dark:border-slate-800 flex items-center justify-between bg-[#F8FAFC] dark:bg-slate-900">
+                <div className="flex items-center space-x-2">
+                  <div className="p-1.5 rounded-lg bg-[#EBF3FA] dark:bg-slate-800 text-[#004B93] dark:text-[#38BDF8]">
+                    <BookOpen className="w-4 h-4" />
+                  </div>
+                  <div>
+                    <h4 className="text-xs font-extrabold text-slate-900 dark:text-white">
+                      Case & Lecture Scratchpad
+                    </h4>
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400">
+                      {saveStatus === 'saving' ? (
+                        <span className="text-amber-600 dark:text-amber-400 animate-pulse">
+                          Saving changes...
+                        </span>
+                      ) : (
+                        <span className="text-emerald-600 dark:text-emerald-400 font-bold flex items-center space-x-1">
+                          <Check className="w-3 h-3 inline" />
+                          <span>Saved to IndexedDB</span>
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Toolbar */}
+                <div className="flex items-center space-x-1">
+                  <button
+                    onClick={insertBullet}
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 dark:text-slate-400 transition"
+                    title="Insert Bullet Point"
+                  >
+                    <List className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={insertTimestamp}
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 dark:text-slate-400 transition"
+                    title="Insert Timestamp"
+                  >
+                    <Clock className="w-3.5 h-3.5" />
+                  </button>
+                  <button
+                    onClick={handleCopyNotes}
+                    className="p-1.5 rounded-lg text-slate-500 hover:text-slate-900 hover:bg-slate-200 dark:hover:bg-slate-800 dark:text-slate-400 transition relative"
+                    title="Copy Notes"
+                  >
+                    {copyFeedback ? (
+                      <Check className="w-3.5 h-3.5 text-emerald-600" />
+                    ) : (
+                      <Copy className="w-3.5 h-3.5" />
+                    )}
+                  </button>
+                </div>
+              </div>
+
+              {/* Textarea */}
+              <div className="flex-1 p-3 flex flex-col">
+                <textarea
+                  value={notes}
+                  onChange={(e) => setNotes(e.target.value)}
+                  placeholder="Record lecture notes, case study takeaways, key formulas, or PRD frameworks while viewing this document...
+
+Notes automatically persist in IndexedDB and stay attached to this specific file."
+                  className="w-full flex-1 p-3 text-xs leading-relaxed font-sans bg-slate-50/50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-800 rounded-2xl resize-none text-slate-900 dark:text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#004B93]"
+                />
+              </div>
+
+              {/* Footer */}
+              <div className="px-3.5 py-2.5 border-t border-slate-100 dark:border-slate-800 text-[10px] text-slate-400 flex items-center justify-between bg-[#F8FAFC] dark:bg-slate-900">
+                <span>{wordCount} words • {notes.length} characters</span>
+                <span className="font-semibold text-[#004B93] dark:text-[#38BDF8]">
+                  100% Local Vault
+                </span>
+              </div>
+            </div>
+          )}
         </div>
       </div>
     </div>

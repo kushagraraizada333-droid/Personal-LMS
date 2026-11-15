@@ -157,6 +157,8 @@ export const getAllFileMetadata = async (): Promise<StoredFileMetadata[]> => {
           moduleTag: val.moduleTag,
           uploadDate: val.uploadDate,
           assignmentId: val.assignmentId,
+          tag: val.tag ?? 'General',
+          scratchpadNotes: val.scratchpadNotes ?? '',
         });
         cursor.continue();
       } else {
@@ -174,6 +176,38 @@ export const getAllFileMetadata = async (): Promise<StoredFileMetadata[]> => {
 export const getFilesForSubject = async (subjectId: string): Promise<StoredFileMetadata[]> => {
   const all = await getAllFileMetadata();
   return all.filter((file) => file.subjectId === subjectId);
+};
+
+/**
+ * Updates a file's metadata (e.g. tag or scratchpadNotes) non-destructively
+ */
+export const updateFileMetadata = async (
+  fileId: string,
+  updates: Partial<StoredFileMetadata>
+): Promise<void> => {
+  const db = await initDB();
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(STORES.FILES, 'readwrite');
+    const store = transaction.objectStore(STORES.FILES);
+    const getRequest = store.get(fileId);
+
+    getRequest.onsuccess = () => {
+      const existing = getRequest.result;
+      if (!existing) {
+        resolve();
+        return;
+      }
+      const updated = {
+        ...existing,
+        ...updates,
+      };
+      const putRequest = store.put(updated);
+      putRequest.onsuccess = () => resolve();
+      putRequest.onerror = () => reject(putRequest.error);
+    };
+
+    getRequest.onerror = () => reject(getRequest.error);
+  });
 };
 
 /**

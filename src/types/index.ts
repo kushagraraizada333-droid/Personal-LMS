@@ -50,6 +50,14 @@ export interface EvaluationComponent {
   maxMarks: number; // e.g., 20
 }
 
+export type DocumentTag =
+  | 'All'
+  | 'Lecture Slides'
+  | 'Case Study'
+  | 'Assignment Brief'
+  | 'My Submission'
+  | 'General';
+
 export interface StoredFileMetadata {
   id: string;
   subjectId: string;
@@ -59,6 +67,8 @@ export interface StoredFileMetadata {
   moduleTag: string;
   uploadDate: string; // ISO string
   assignmentId?: string;
+  tag?: string; // DocumentTag category
+  scratchpadNotes?: string; // Persistent markdown/plain-text notes attached to this file
 }
 
 export interface StoredFileBlob extends StoredFileMetadata {
@@ -82,6 +92,14 @@ export interface BatchUploadProgress {
   percent: number;
 }
 
+export type KanbanStage = 'Queued' | 'In Progress' | 'Drafting/Review' | 'Submitted';
+
+export interface AssignmentSubtask {
+  id: string;
+  title: string;
+  completed: boolean;
+}
+
 export interface Assignment {
   id: string;
   subjectId: string;
@@ -94,6 +112,9 @@ export interface Assignment {
   submissionFileId?: string;
   submissionFileName?: string;
   submittedAt?: string;
+  kanbanStage?: KanbanStage;
+  subtasks?: AssignmentSubtask[];
+  focusMinutesLogged?: number;
 }
 
 export interface Subject {

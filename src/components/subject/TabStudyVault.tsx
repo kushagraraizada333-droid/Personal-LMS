@@ -1,6 +1,6 @@
 import React, { useState, useRef, useMemo } from 'react';
 import { useLMS } from '../../context/LMSContext';
-import { Subject, StoredFileMetadata, BatchUploadProgress } from '../../types';
+import { Subject, StoredFileMetadata, BatchUploadProgress, DocumentTag } from '../../types';
 import { formatFileSize, formatDate } from '../../utils/formatters';
 import {
   UploadCloud,
@@ -28,6 +28,8 @@ import {
   ArrowUpDown,
   Sparkles,
   Loader2,
+  Tag,
+  BookOpen,
 } from 'lucide-react';
 import { triggerStudyConfetti } from '../../utils/sound';
 
@@ -37,6 +39,15 @@ interface TabStudyVaultProps {
 
 type FileCategory = 'all' | 'pdf' | 'ppt' | 'excel' | 'doc' | 'media' | 'archive';
 type SortOption = 'newest' | 'oldest' | 'name' | 'size-desc' | 'size-asc';
+
+const DOCUMENT_TAGS: DocumentTag[] = [
+  'All',
+  'Lecture Slides',
+  'Case Study',
+  'Assignment Brief',
+  'My Submission',
+  'General',
+];
 
 export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
   const {
@@ -48,10 +59,13 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
     loadFileBlob,
     storageUsage,
     requestPersistentStorage,
+    updateFileTag,
   } = useLMS();
 
   const [selectedModule, setSelectedModule] = useState<string>('All');
+  const [selectedTag, setSelectedTag] = useState<DocumentTag>('All');
   const [uploadModuleTag, setUploadModuleTag] = useState<string>('General Coursepack');
+  const [uploadTag, setUploadTag] = useState<DocumentTag>('Lecture Slides');
   const [searchQuery, setSearchQuery] = useState('');
   const [categoryFilter, setCategoryFilter] = useState<FileCategory>('all');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
@@ -144,6 +158,11 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
       result = result.filter((f) => f.moduleTag === selectedModule);
     }
 
+    // Document Tag filter
+    if (selectedTag !== 'All') {
+      result = result.filter((f) => (f.tag ?? 'General') === selectedTag);
+    }
+
     // Category filter
     if (categoryFilter !== 'all') {
       result = result.filter((f) => getFileCategory(f.name, f.type) === categoryFilter);
@@ -155,7 +174,8 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
       result = result.filter(
         (f) =>
           f.name.toLowerCase().includes(q) ||
-          f.moduleTag.toLowerCase().includes(q)
+          f.moduleTag.toLowerCase().includes(q) ||
+          (f.tag ?? '').toLowerCase().includes(q)
       );
     }
 
@@ -180,7 +200,7 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
     });
 
     return result;
-  }, [subjectFiles, selectedModule, categoryFilter, searchQuery, sortBy]);
+  }, [subjectFiles, selectedModule, selectedTag, categoryFilter, searchQuery, sortBy]);
 
   // Handle batch file upload
   const handleFiles = async (fileList: FileList | null) => {
@@ -204,7 +224,8 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
         uploadModuleTag,
         (progress) => {
           setUploadProgress(progress);
-        }
+        },
+        uploadTag
       );
 
       const totalBytes = filesArray.reduce((acc, f) => acc + f.size, 0);
@@ -325,17 +346,36 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
               {subject.code} Vault ({subjectFiles.length} {subjectFiles.length === 1 ? 'file' : 'files'})
             </span>
           </div>
-          <div className="flex items-center space-x-2">
-            <label className="text-xs font-semibold text-slate-500 whitespace-nowrap">
-              Module:
-            </label>
-            <input
-              type="text"
-              placeholder="e.g. Session 1, Coursepack"
-              value={uploadModuleTag}
-              onChange={(e) => setUploadModuleTag(e.target.value)}
-              className="px-3 py-1.5 text-xs bg-[#F4F7FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#004B93] min-w-[200px]"
-            />
+          <div className="flex items-center space-x-3 flex-wrap gap-2">
+            <div className="flex items-center space-x-1.5">
+              <label className="text-xs font-semibold text-slate-500 whitespace-nowrap">
+                Module:
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. Session 1, Coursepack"
+                value={uploadModuleTag}
+                onChange={(e) => setUploadModuleTag(e.target.value)}
+                className="px-3 py-1.5 text-xs bg-[#F4F7FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 font-medium focus:outline-none focus:ring-2 focus:ring-[#004B93] w-36 sm:w-44"
+              />
+            </div>
+
+            <div className="flex items-center space-x-1.5">
+              <label className="text-xs font-semibold text-slate-500 whitespace-nowrap">
+                Tag:
+              </label>
+              <select
+                value={uploadTag}
+                onChange={(e) => setUploadTag(e.target.value as DocumentTag)}
+                className="px-2.5 py-1.5 text-xs bg-[#F4F7FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 font-semibold focus:outline-none focus:ring-2 focus:ring-[#004B93]"
+              >
+                {DOCUMENT_TAGS.filter((t) => t !== 'All').map((t) => (
+                  <option key={t} value={t}>
+                    {t}
+                  </option>
+                ))}
+              </select>
+            </div>
           </div>
         </div>
 
@@ -513,6 +553,41 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
             </div>
           </div>
 
+          {/* Document Quick Tag Filter Pills */}
+          <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
+            <span className="text-[11px] font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider mr-1 flex items-center space-x-1">
+              <Tag className="w-3.5 h-3.5 text-[#004B93] dark:text-[#38BDF8]" />
+              <span>Tags:</span>
+            </span>
+            {DOCUMENT_TAGS.map((tag) => {
+              const isActive = selectedTag === tag;
+              const count =
+                tag === 'All'
+                  ? subjectFiles.length
+                  : subjectFiles.filter((f) => (f.tag ?? 'General') === tag).length;
+              return (
+                <button
+                  key={tag}
+                  onClick={() => setSelectedTag(tag)}
+                  className={`px-3 py-1 text-xs font-bold rounded-xl transition flex items-center space-x-1.5 ${
+                    isActive
+                      ? 'bg-[#004B93] text-white shadow-xs'
+                      : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200'
+                  }`}
+                >
+                  <span>{tag}</span>
+                  <span
+                    className={`text-[10px] px-1.5 py-0.2 rounded-full font-bold ${
+                      isActive ? 'bg-white/25 text-white' : 'bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-400'
+                    }`}
+                  >
+                    {count}
+                  </span>
+                </button>
+              );
+            })}
+          </div>
+
           {/* Category Filter Pills */}
           <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
             <span className="text-[11px] font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider mr-1">
@@ -634,12 +709,37 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
                       >
                         {file.name}
                       </p>
-                      <div className="flex items-center space-x-2 text-[11px] text-slate-700 dark:text-slate-300 font-bold mt-0.5">
-                        <span className="font-extrabold text-[#004B93] dark:text-[#38BDF8] truncate max-w-[130px]">
+                      <div className="flex items-center space-x-2 text-[11px] text-slate-700 dark:text-slate-300 font-bold mt-1 flex-wrap gap-1">
+                        <select
+                          value={file.tag ?? 'General'}
+                          onChange={(e) => {
+                            e.stopPropagation();
+                            updateFileTag(file.id, e.target.value as DocumentTag);
+                          }}
+                          onClick={(e) => e.stopPropagation()}
+                          className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#EBF3FA] dark:bg-slate-800 text-[#004B93] dark:text-[#38BDF8] border border-[#D6E6F5] dark:border-slate-700 cursor-pointer focus:outline-none"
+                          title="Change Document Tag"
+                        >
+                          {DOCUMENT_TAGS.filter((t) => t !== 'All').map((t) => (
+                            <option key={t} value={t}>
+                              {t}
+                            </option>
+                          ))}
+                        </select>
+                        <span className="font-extrabold text-[#004B93] dark:text-[#38BDF8] truncate max-w-[120px]">
                           {file.moduleTag}
                         </span>
                         <span>•</span>
                         <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatFileSize(file.size)}</span>
+                        {file.scratchpadNotes?.trim() && (
+                          <span
+                            title="Notes saved"
+                            className="inline-flex items-center space-x-0.5 text-[10px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-950/60 px-1.5 py-0.5 rounded border border-amber-200 dark:border-amber-800"
+                          >
+                            <BookOpen className="w-3 h-3 text-amber-600 dark:text-amber-400" />
+                            <span>Notes</span>
+                          </span>
+                        )}
                         <span>•</span>
                         <span>{formatDate(file.uploadDate)}</span>
                       </div>
@@ -698,7 +798,8 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
                       </button>
                     </th>
                     <th className="py-3 px-4 font-extrabold text-slate-900 dark:text-white">File Name</th>
-                    <th className="py-3 px-4 font-extrabold text-slate-900 dark:text-white">Module Tag</th>
+                    <th className="py-3 px-4 font-extrabold text-slate-900 dark:text-white">Document Tag</th>
+                    <th className="py-3 px-4 font-extrabold text-slate-900 dark:text-white">Module</th>
                     <th className="py-3 px-4 font-extrabold text-slate-900 dark:text-white">Size</th>
                     <th className="py-3 px-4 font-extrabold text-slate-900 dark:text-white">Uploaded Date</th>
                     <th className="py-3 px-4 font-extrabold text-slate-900 dark:text-white text-right">Actions</th>
@@ -738,6 +839,34 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
                             >
                               {file.name}
                             </span>
+                          </div>
+                        </td>
+                        <td className="py-3 px-4">
+                          <div className="flex items-center space-x-1.5">
+                            <select
+                              value={file.tag ?? 'General'}
+                              onChange={(e) => {
+                                e.stopPropagation();
+                                updateFileTag(file.id, e.target.value as DocumentTag);
+                              }}
+                              onClick={(e) => e.stopPropagation()}
+                              className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#EBF3FA] dark:bg-slate-800 text-[#004B93] dark:text-[#38BDF8] border border-[#D6E6F5] dark:border-slate-700 cursor-pointer focus:outline-none"
+                              title="Change Document Tag"
+                            >
+                              {DOCUMENT_TAGS.filter((t) => t !== 'All').map((t) => (
+                                <option key={t} value={t}>
+                                  {t}
+                                </option>
+                              ))}
+                            </select>
+                            {file.scratchpadNotes?.trim() && (
+                              <span
+                                title="Has study notes"
+                                className="text-amber-600 dark:text-amber-400 p-0.5 bg-amber-50 dark:bg-amber-950/60 rounded border border-amber-200 dark:border-amber-800"
+                              >
+                                <BookOpen className="w-3 h-3" />
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td className="py-3 px-4">

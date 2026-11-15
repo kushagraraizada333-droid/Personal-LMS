@@ -6,6 +6,7 @@ import {
   Timer,
   Search,
 } from 'lucide-react';
+import { playSoftTick } from '../../utils/sound';
 
 interface HeaderProps {
   onOpenNewAssignment: () => void;
@@ -26,6 +27,7 @@ export const Header: React.FC<HeaderProps> = ({
     activeView,
     subjects,
     selectedSubjectCode,
+    setIsCommandPaletteOpen,
   } = useLMS();
 
   const selectedSubject = subjects.find((s) => s.code === selectedSubjectCode);
@@ -62,17 +64,21 @@ export const Header: React.FC<HeaderProps> = ({
 
       {/* Right: Search & Actions */}
       <div className="flex items-center space-x-2.5 flex-wrap gap-y-2">
-        {/* Search */}
-        <div className="relative hidden md:block w-48 lg:w-56">
-          <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder="Search portal..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full pl-8 pr-3 py-1.5 text-xs bg-[#F4F7FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-800 dark:text-slate-200 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-[#004B93] font-medium"
-          />
-        </div>
+        {/* Search / Command Palette Shortcut */}
+        <button
+          onClick={() => {
+            setIsCommandPaletteOpen(true);
+            playSoftTick();
+          }}
+          className="relative hidden md:flex items-center justify-between w-48 lg:w-60 pl-8 pr-2.5 py-1.5 text-xs bg-[#F4F7FA] dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl text-slate-500 dark:text-slate-400 hover:border-[#004B93] dark:hover:border-[#38BDF8] transition text-left group shadow-2xs"
+          title="Search courses, tasks, files or commands (Ctrl+K)"
+        >
+          <Search className="w-3.5 h-3.5 absolute left-2.5 top-1/2 -translate-y-1/2 text-slate-400 group-hover:text-[#004B93] dark:group-hover:text-[#38BDF8] transition" />
+          <span className="font-medium truncate">Search or jump to...</span>
+          <kbd className="px-1.5 py-0.5 text-[10px] font-mono font-bold bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded text-slate-500 group-hover:text-[#004B93] shadow-2xs">
+            ⌘K
+          </kbd>
+        </button>
 
         {/* Sync Excel Button */}
         <button

@@ -16,6 +16,8 @@ import { FilePreviewModal } from './components/common/FilePreviewModal';
 import { PomodoroModal } from './components/common/PomodoroModal';
 import { BackupModal } from './components/common/BackupModal';
 import { AddAssignmentModal } from './components/common/AddAssignmentModal';
+import { AssignmentFocusDrawer } from './components/assignments/AssignmentFocusDrawer';
+import { CommandPaletteModal } from './components/common/CommandPaletteModal';
 import { Loader2 } from 'lucide-react';
 import { playClickSound } from './utils/sound';
 
@@ -132,7 +134,7 @@ const MainContent: React.FC = () => {
         </footer>
       </div>
 
-      {/* Global Modals */}
+      {/* Global Modals & Drawers */}
       <SyncExcelModal
         isOpen={isSyncExcelOpen}
         onClose={() => setIsSyncExcelOpen(false)}
@@ -143,6 +145,11 @@ const MainContent: React.FC = () => {
       <AddAssignmentModal
         isOpen={isAddAssignmentOpen}
         onClose={() => setIsAddAssignmentOpen(false)}
+      />
+      <AssignmentFocusDrawer />
+      <CommandPaletteModal
+        onOpenSyncExcel={() => setIsSyncExcelOpen(true)}
+        onOpenNewAssignment={() => setIsAddAssignmentOpen(true)}
       />
     </div>
   );

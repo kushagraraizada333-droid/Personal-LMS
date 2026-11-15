@@ -13,8 +13,10 @@ import {
   BarChart3,
   Sparkles,
   FileSpreadsheet,
+  Sliders,
 } from 'lucide-react';
-import { triggerStudyConfetti } from '../../utils/sound';
+import { triggerStudyConfetti, playSoftTick } from '../../utils/sound';
+import { MarksSimulator } from '../simulation/MarksSimulator';
 
 interface TabGradebookProps {
   subject: Subject;
@@ -35,6 +37,7 @@ export const TabGradebook: React.FC<TabGradebookProps> = ({ subject }) => {
   const [editMaxMarks, setEditMaxMarks] = useState(0);
 
   const [isAdding, setIsAdding] = useState(false);
+  const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [newName, setNewName] = useState('');
   const [newWeightage, setNewWeightage] = useState(25);
   const [newMarksObtained, setNewMarksObtained] = useState(0);
@@ -157,7 +160,22 @@ export const TabGradebook: React.FC<TabGradebookProps> = ({ subject }) => {
           </h3>
         </div>
 
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 flex-wrap gap-1.5">
+          <button
+            onClick={() => {
+              setIsSimulatorOpen(!isSimulatorOpen);
+              playSoftTick();
+            }}
+            className={`inline-flex items-center space-x-1.5 px-3 py-1.5 rounded-xl border text-xs font-bold transition ${
+              isSimulatorOpen
+                ? 'bg-amber-500 text-slate-900 border-amber-400 shadow-xs'
+                : 'border-slate-200 dark:border-slate-700 bg-amber-50/60 dark:bg-amber-950/30 text-amber-900 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/50'
+            }`}
+          >
+            <Sliders className="w-3.5 h-3.5" />
+            <span>What-If Sandbox</span>
+          </button>
+
           <input
             ref={marksFileRef}
             type="file"
@@ -182,6 +200,14 @@ export const TabGradebook: React.FC<TabGradebookProps> = ({ subject }) => {
           </button>
         </div>
       </div>
+
+      {/* Simulator Mode in Subject View */}
+      {isSimulatorOpen && (
+        <MarksSimulator
+          initialSubjectCode={subject.code}
+          onClose={() => setIsSimulatorOpen(false)}
+        />
+      )}
 
       {/* Add Component Form */}
       {isAdding && (

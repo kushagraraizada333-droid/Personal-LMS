@@ -2,6 +2,7 @@ import React, { useState, useRef } from 'react';
 import { useLMS } from '../../context/LMSContext';
 import { Subject, Assignment } from '../../types';
 import { getTimeRemaining, formatDate } from '../../utils/formatters';
+import { UrgencyRing } from '../assignments/UrgencyRing';
 import {
   FileCheck2,
   Plus,
@@ -34,6 +35,7 @@ export const TabAssignments: React.FC<TabAssignmentsProps> = ({
     openFilePreview,
     loadFileBlob,
     importAssignmentsExcel,
+    setSelectedAssignmentForFocus,
   } = useLMS();
 
   const [filterStatus, setFilterStatus] = useState<'All' | 'Pending' | 'In Progress' | 'Submitted'>('All');
@@ -196,12 +198,16 @@ export const TabAssignments: React.FC<TabAssignmentsProps> = ({
                         </span>
                       )}
 
-                      <span className="text-xs text-slate-500 dark:text-slate-400">
-                        Due: {formatDate(asg.dueDate)}
+                      <span className="text-xs text-slate-500 dark:text-slate-400 flex items-center space-x-1.5">
+                        <UrgencyRing dueDate={asg.dueDate} isSubmitted={asg.status === 'Submitted'} size={18} strokeWidth={2.5} />
+                        <span>Due: {formatDate(asg.dueDate)}</span>
                       </span>
                     </div>
 
-                    <h4 className="text-base font-bold text-slate-900 dark:text-white">
+                    <h4
+                      onClick={() => setSelectedAssignmentForFocus(asg)}
+                      className="text-base font-bold text-slate-900 dark:text-white cursor-pointer hover:text-[#004B93] dark:hover:text-[#38BDF8] transition"
+                    >
                       {asg.title}
                     </h4>
 

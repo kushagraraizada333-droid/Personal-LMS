@@ -23,6 +23,7 @@ import {
   deleteFileBlob,
   deleteFileBlobsBatch,
   getAllFileMetadata,
+  updateFileMetadata,
   setMeta,
   getMeta,
   getStorageUsage,
@@ -102,13 +103,16 @@ interface LMSContextType {
     files: File[],
     subjectId: string,
     moduleTag: string,
-    onProgress?: (p: BatchUploadProgress) => void
+    onProgress?: (p: BatchUploadProgress) => void,
+    tag?: string
   ) => Promise<StoredFileMetadata[]>;
   deleteFile: (fileId: string) => Promise<void>;
   deleteFilesBatch: (fileIds: string[]) => Promise<void>;
   loadFileBlob: (fileId: string) => Promise<StoredFileBlob | null>;
   refreshStorageQuota: () => Promise<StorageQuotaInfo>;
   requestPersistentStorage: () => Promise<boolean>;
+  updateFileTag: (fileId: string, tag: string) => Promise<void>;
+  updateFileScratchpad: (fileId: string, notes: string) => Promise<void>;
 
   // Assignment Actions
   addAssignment: (assignmentData: Omit<Assignment, 'id'>) => Promise<Assignment>;
@@ -148,6 +152,12 @@ interface LMSContextType {
   previewFile: StoredFileBlob | null;
   setPreviewFile: (file: StoredFileBlob | null) => void;
   openFilePreview: (fileId: string) => Promise<void>;
+
+  // Focus Drawer & Command Palette
+  selectedAssignmentForFocus: Assignment | null;
+  setSelectedAssignmentForFocus: (a: Assignment | null) => void;
+  isCommandPaletteOpen: boolean;
+  setIsCommandPaletteOpen: (open: boolean) => void;
 }
 
 const LMSContext = createContext<LMSContextType | undefined>(undefined);
@@ -179,6 +189,8 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   // Modals
   const [isBackupModalOpen, setIsBackupModalOpen] = useState(false);
   const [isPomodoroModalOpen, setIsPomodoroModalOpen] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [selectedAssignmentForFocus, setSelectedAssignmentForFocus] = useState<Assignment | null>(null);
   const [previewFile, setPreviewFile] = useState<StoredFileBlob | null>(null);
 
   // Pomodoro
@@ -244,11 +256,24 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         await setMeta('hsb_data_version', CURRENT_DATA_VERSION);
       }
 
+      const normalizedAssignments: Assignment[] = (storedAssignments || []).map((a) => ({
+        ...a,
+        subtasks: a.subtasks ?? [],
+        focusMinutesLogged: a.focusMinutesLogged ?? 0,
+        kanbanStage:
+          a.kanbanStage ??
+          (a.status === 'Submitted'
+            ? 'Submitted'
+            : a.status === 'In Progress'
+            ? 'In Progress'
+            : 'Queued'),
+      }));
+
       setSubjects(storedSubjects);
       setAttendance(storedAttendance || INITIAL_ATTENDANCE);
       setTimetable(storedTimetable || getInitialTimetable());
       setExamReminders(storedReminders || INITIAL_EXAM_REMINDERS);
-      setAssignments(storedAssignments || []);
+      setAssignments(normalizedAssignments);
       setStudent(storedStudent || INITIAL_STUDENT);
 
       const fileMetaList = await getAllFileMetadata();
@@ -500,7 +525,8 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     filesToUpload: File[],
     subjectId: string,
     moduleTag: string,
-    onProgress?: (p: BatchUploadProgress) => void
+    onProgress?: (p: BatchUploadProgress) => void,
+    tag: string = 'General'
   ): Promise<StoredFileMetadata[]> => {
     const total = filesToUpload.length;
     if (total === 0) return [];
@@ -528,6 +554,8 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         size: file.size,
         type: file.type || 'application/octet-stream',
         moduleTag: moduleTag || 'General Coursepack',
+        tag: tag || 'General',
+        scratchpadNotes: '',
         uploadDate: new Date().toISOString(),
         blob: file,
       };
@@ -540,6 +568,8 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         size: item.size,
         type: item.type,
         moduleTag: item.moduleTag,
+        tag: item.tag,
+        scratchpadNotes: item.scratchpadNotes,
         uploadDate: item.uploadDate,
       });
     }
@@ -578,9 +608,33 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
     }
   };
 
+  const updateFileTag = async (fileId: string, tag: string): Promise<void> => {
+    await updateFileMetadata(fileId, { tag });
+    setFiles((prev) => prev.map((f) => (f.id === fileId ? { ...f, tag } : f)));
+    if (previewFile && previewFile.id === fileId) {
+      setPreviewFile({ ...previewFile, tag });
+    }
+  };
+
+  const updateFileScratchpad = async (fileId: string, scratchpadNotes: string): Promise<void> => {
+    await updateFileMetadata(fileId, { scratchpadNotes });
+    setFiles((prev) => prev.map((f) => (f.id === fileId ? { ...f, scratchpadNotes } : f)));
+    if (previewFile && previewFile.id === fileId) {
+      setPreviewFile({ ...previewFile, scratchpadNotes });
+    }
+  };
+
   // Assignment Actions
   const addAssignment = async (assignmentData: Omit<Assignment, 'id'>): Promise<Assignment> => {
     const newAssignment: Assignment = {
+      subtasks: [],
+      focusMinutesLogged: 0,
+      kanbanStage:
+        assignmentData.status === 'Submitted'
+          ? 'Submitted'
+          : assignmentData.status === 'In Progress'
+          ? 'In Progress'
+          : 'Queued',
       ...assignmentData,
       id: `asg-${Date.now()}`,
     };
@@ -593,6 +647,9 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
   const updateAssignment = async (id: string, updates: Partial<Assignment>): Promise<void> => {
     const updated = assignments.map((a) => (a.id === id ? { ...a, ...updates } : a));
     setAssignments(updated);
+    if (selectedAssignmentForFocus && selectedAssignmentForFocus.id === id) {
+      setSelectedAssignmentForFocus((prev) => (prev ? { ...prev, ...updates } : null));
+    }
     await setMeta('assignments_t2', updated);
   };
 
@@ -866,6 +923,8 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         loadFileBlob,
         refreshStorageQuota,
         requestPersistentStorage,
+        updateFileTag,
+        updateFileScratchpad,
         addAssignment,
         updateAssignment,
         deleteAssignment,
@@ -893,6 +952,10 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         previewFile,
         setPreviewFile,
         openFilePreview,
+        selectedAssignmentForFocus,
+        setSelectedAssignmentForFocus,
+        isCommandPaletteOpen,
+        setIsCommandPaletteOpen,
       }}
     >
       {children}

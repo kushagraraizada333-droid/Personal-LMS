@@ -10,8 +10,10 @@ import {
   Target,
   Sparkles,
   ArrowRight,
+  Sliders,
 } from 'lucide-react';
-import { triggerStudyConfetti } from '../../utils/sound';
+import { triggerStudyConfetti, playSoftTick } from '../../utils/sound';
+import { MarksSimulator } from '../simulation/MarksSimulator';
 
 export const MarksGradebookView: React.FC = () => {
   const {
@@ -27,6 +29,7 @@ export const MarksGradebookView: React.FC = () => {
 
   const [activeSubjectCode, setActiveSubjectCode] = useState<string>('PM2');
   const [isAdding, setIsAdding] = useState(false);
+  const [isSimulatorOpen, setIsSimulatorOpen] = useState(false);
   const [compName, setCompName] = useState('');
   const [compWeight, setCompWeight] = useState(25);
   const [compMarks, setCompMarks] = useState(20);
@@ -80,21 +83,38 @@ export const MarksGradebookView: React.FC = () => {
             </p>
           </div>
 
-          {/* Big CGPA Metric Box */}
-          <div className="flex items-center space-x-3 px-4 py-2.5 rounded-2xl bg-black/25 border border-white/10 shrink-0">
-            <div className="text-right">
-              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300 block">
-                Current CGPA
-              </span>
-              <div className="flex items-baseline space-x-1 justify-end">
-                <span className="text-2xl sm:text-3xl font-black text-white tabular-nums">
-                  {cgpaStats.hasEvaluations ? cgpaStats.cgpa : '—'}
+          {/* Actions & Big CGPA Metric Box */}
+          <div className="flex items-center space-x-3 shrink-0 flex-wrap gap-2">
+            <button
+              onClick={() => {
+                setIsSimulatorOpen(!isSimulatorOpen);
+                playSoftTick();
+              }}
+              className={`flex items-center space-x-1.5 px-3.5 py-2.5 rounded-2xl font-bold text-xs transition border ${
+                isSimulatorOpen
+                  ? 'bg-amber-500 text-slate-900 border-amber-300 shadow-md ring-2 ring-amber-400/40'
+                  : 'bg-white/15 hover:bg-white/25 text-white border-white/20'
+              }`}
+            >
+              <Sliders className="w-4 h-4 text-amber-300" />
+              <span>What-If Sandbox</span>
+            </button>
+
+            <div className="flex items-center space-x-3 px-4 py-2.5 rounded-2xl bg-black/25 border border-white/10 shrink-0">
+              <div className="text-right">
+                <span className="text-[10px] font-bold uppercase tracking-wider text-slate-300 block">
+                  Current CGPA
                 </span>
-                <span className="text-xs text-slate-300">/ 10.0</span>
+                <div className="flex items-baseline space-x-1 justify-end">
+                  <span className="text-2xl sm:text-3xl font-black text-white tabular-nums">
+                    {cgpaStats.hasEvaluations ? cgpaStats.cgpa : '—'}
+                  </span>
+                  <span className="text-xs text-slate-300">/ 10.0</span>
+                </div>
               </div>
-            </div>
-            <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center">
-              <GraduationCap className="w-5 h-5" />
+              <div className="w-10 h-10 rounded-xl bg-white/10 text-white flex items-center justify-center">
+                <GraduationCap className="w-5 h-5" />
+              </div>
             </div>
           </div>
         </div>
@@ -119,6 +139,14 @@ export const MarksGradebookView: React.FC = () => {
           </div>
         </div>
       </div>
+
+      {/* Simulator Mode Panel */}
+      {isSimulatorOpen && (
+        <MarksSimulator
+          initialSubjectCode={activeSubjectCode}
+          onClose={() => setIsSimulatorOpen(false)}
+        />
+      )}
 
       {/* Course Evaluation Matrix */}
       <div className="space-y-4">
