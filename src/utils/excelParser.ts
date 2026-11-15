@@ -14,6 +14,31 @@ export interface ParsedWorkbookResult {
   message: string;
 }
 
+export const excelDateToJSDate = (serial: any): string => {
+  if (!serial) return '';
+  if (serial instanceof Date) {
+    return serial.toISOString().split('T')[0];
+  }
+  if (typeof serial === 'number') {
+    const utc_days = Math.floor(serial - 25569);
+    const utc_value = utc_days * 86400;
+    const date_info = new Date(utc_value * 1000);
+    return date_info.toISOString().split('T')[0];
+  }
+  const str = String(serial).trim();
+  if (/^\d{5}$/.test(str)) {
+    const num = parseInt(str, 10);
+    const utc_days = Math.floor(num - 25569);
+    const utc_value = utc_days * 86400;
+    const date_info = new Date(utc_value * 1000);
+    return date_info.toISOString().split('T')[0];
+  }
+  if (/^\d{4}-\d{2}-\d{2}$/.test(str)) {
+    return str;
+  }
+  return str;
+};
+
 const parseSlotType = (
   text: string
 ): { type: TimetableSlot['type']; subjectCode?: string; title: string } => {
@@ -90,7 +115,8 @@ export const parseTimetableSheet = (sheet: XLSX.WorkSheet): TimetableDay[] => {
     const row = data[r];
     if (!row || row.length === 0) continue;
 
-    const firstCol = String(row[0] || '').trim();
+    const firstColRaw = row[0];
+    const firstCol = String(firstColRaw || '').trim();
 
     // Check for Week header
     if (firstCol.toLowerCase().startsWith('week ')) {
@@ -101,9 +127,14 @@ export const parseTimetableSheet = (sheet: XLSX.WorkSheet): TimetableDay[] => {
       continue;
     }
 
-    // Check if this row is a date row (e.g. 2026-10-05)
-    if (/^\d{4}-\d{2}-\d{2}$/.test(firstCol)) {
-      const dateStr = firstCol;
+    let dateStr = '';
+    if (typeof firstColRaw === 'number' || /^\d{5}$/.test(firstCol)) {
+      dateStr = excelDateToJSDate(firstColRaw);
+    } else if (/^\d{4}-\d{2}-\d{2}$/.test(firstCol)) {
+      dateStr = firstCol;
+    }
+
+    if (dateStr) {
       const dayName = String(row[1] || '').trim();
 
       const slot1 = String(row[2] || '');
@@ -201,16 +232,23 @@ export const parseSubjectAttendanceSheet = (
   const sessionCols: { colIdx: number; sessionNum: number; date: string; timeSlot: string }[] = [];
   let latesColIdx = -1;
 
-  for (let c = 0; c < headerRow.length; c++) {
+  for (const c of Object.keys(headerRow).map(Number)) {
     const val = String(headerRow[c] || '').trim();
     if (/^S\d+$/i.test(val)) {
       const sNum = parseInt(val.replace(/\D/g, ''), 10);
-      const rawDate = String(dateRow[c] || '').replace('Date ->', '').trim();
-      const rawTime = String(timingRow[c] || '').replace('Timing ->', '').replace(/\r?\n/g, ' ').trim();
+      const rawDate = dateRow[c];
+      const cleanDate = (typeof rawDate === 'number' || /^\d{5}$/.test(String(rawDate || '')))
+        ? excelDateToJSDate(rawDate)
+        : String(rawDate || '').replace('Date ->', '').trim();
+      const rawTime = String(timingRow[c] || '')
+        .replace('Timing ->', '')
+        .replace(/\r?\n/g, ' ')
+        .replace(/\s+/g, ' ')
+        .trim();
       sessionCols.push({
         colIdx: c,
         sessionNum: sNum,
-        date: rawDate,
+        date: cleanDate,
         timeSlot: rawTime,
       });
     } else if (val.toLowerCase().includes('late')) {
@@ -225,9 +263,9 @@ export const parseSubjectAttendanceSheet = (
   for (let r = headerRowIdx + 1; r < data.length; r++) {
     const row = data[r];
     const roll = String(row[0] || '').trim();
-    if (roll.startsWith('2026MBAPM')) {
+    if (roll.startsWith('2026MBA')) {
       allStudentRows.push(row);
-      if (roll === targetRollNumber) {
+      if (roll === targetRollNumber || String(row[1] || '').includes('Kushagra')) {
         studentRow = row;
       }
     }
@@ -320,6 +358,7 @@ export const parseHSBWorkbook = async (file: File): Promise<ParsedWorkbookResult
       em: 'EM',
       entrepreneurial: 'EM',
       cv2: 'CV2',
+      tcc: 'CV2',
     };
 
     for (const [key, code] of Object.entries(codeMap)) {

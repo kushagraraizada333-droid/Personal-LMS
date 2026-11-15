@@ -48,6 +48,24 @@ export const SyncExcelModal: React.FC<SyncExcelModalProps> = ({ isOpen, onClose 
     }
   };
 
+  const handleSyncBundledFile = async () => {
+    setIsProcessing(true);
+    setResultMessage(null);
+    setErrorMessage(null);
+    try {
+      const response = await fetch('/Tentative_Timetable_TermII_Batch2026-28.xlsx');
+      if (!response.ok) throw new Error('Could not load bundled workbook.');
+      const blob = await response.blob();
+      const file = new File([blob], 'Tentative_Timetable_TermII_Batch2026-28.xlsx', {
+        type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      });
+      await handleProcessFile(file);
+    } catch (err) {
+      setErrorMessage((err as Error).message || 'Failed to sync bundled file.');
+      setIsProcessing(false);
+    }
+  };
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4 animate-in fade-in duration-200">
       <div className="relative w-full max-w-xl bg-white dark:bg-[#111827] rounded-3xl shadow-2xl border border-slate-200 dark:border-slate-800 overflow-hidden">
@@ -139,6 +157,24 @@ export const SyncExcelModal: React.FC<SyncExcelModalProps> = ({ isOpen, onClose 
               className="mt-4 px-5 py-2 text-xs font-bold rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white shadow-md transition"
             >
               Select Excel File from Device
+            </button>
+          </div>
+
+          {/* Quick Sync Bundled Workbook */}
+          <div className="flex items-center justify-between p-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800">
+            <div className="flex items-center space-x-2.5">
+              <FileSpreadsheet className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
+                Updated Term-II Workbook (Batch 2026-28)
+              </span>
+            </div>
+            <button
+              type="button"
+              onClick={handleSyncBundledFile}
+              disabled={isProcessing}
+              className="px-3.5 py-1.5 text-xs font-bold rounded-xl bg-[#004B93] hover:bg-[#003870] text-white transition shadow-sm"
+            >
+              Sync Now
             </button>
           </div>
 

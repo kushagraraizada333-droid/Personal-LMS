@@ -213,14 +213,17 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
       let storedAssignments = await getMeta<Assignment[]>('assignments_t2');
       let storedStudent = await getMeta<StudentProfile>('student_t2');
 
-      if (!storedSubjects || storedSubjects.length === 0) {
-        // Pre-configure the 8 Trimester II subjects & timetable
+      const CURRENT_DATA_VERSION = '2026-11-15-v2';
+      const savedVersion = await getMeta<string>('hsb_data_version');
+
+      if (!storedSubjects || storedSubjects.length === 0 || savedVersion !== CURRENT_DATA_VERSION) {
+        // Pre-configure the 8 Trimester II subjects, updated attendance & timetable
         storedSubjects = INITIAL_SUBJECTS;
         storedAttendance = INITIAL_ATTENDANCE;
         storedTimetable = getInitialTimetable();
         storedReminders = INITIAL_EXAM_REMINDERS;
-        storedAssignments = []; // Zero demo assignments
-        storedStudent = INITIAL_STUDENT;
+        if (!storedAssignments) storedAssignments = [];
+        if (!storedStudent) storedStudent = INITIAL_STUDENT;
 
         await setMeta('subjects_t2', storedSubjects);
         await setMeta('attendance_t2', storedAttendance);
@@ -228,6 +231,7 @@ export const LMSProvider: React.FC<{ children: ReactNode }> = ({ children }) => 
         await setMeta('exam_reminders_t2', storedReminders);
         await setMeta('assignments_t2', storedAssignments);
         await setMeta('student_t2', storedStudent);
+        await setMeta('hsb_data_version', CURRENT_DATA_VERSION);
       }
 
       setSubjects(storedSubjects);
