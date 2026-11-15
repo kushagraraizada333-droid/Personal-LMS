@@ -80,10 +80,10 @@ export const SubjectOverviewGrid: React.FC = () => {
                         <span className="text-xs font-mono font-black px-2 py-0.5 rounded-lg bg-[#EBF3FA] dark:bg-slate-800 text-[#004B93] dark:text-[#38BDF8] border border-[#D6E6F5] dark:border-slate-700">
                           {subject.code}
                         </span>
-                        <span className="text-xs font-bold text-slate-600 dark:text-slate-400">
+                        <span className="text-xs font-extrabold text-slate-800 dark:text-slate-200">
                           {subject.credits} {subject.credits === 1 ? 'Credit' : 'Credits'}
                         </span>
-                        <span className="text-[11px] text-slate-400 font-mono">
+                        <span className="text-[11px] text-slate-700 dark:text-slate-300 font-bold font-mono">
                           • {subject.plannedSessions} Planned Sessions
                         </span>
                       </div>
@@ -113,13 +113,13 @@ export const SubjectOverviewGrid: React.FC = () => {
                   </div>
 
                   {/* Faculty & TA */}
-                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-600 dark:text-slate-300">
-                    <span className="flex items-center space-x-1.5 font-medium">
-                      <User className="w-3.5 h-3.5 text-slate-400" />
+                  <div className="mt-3 flex flex-wrap items-center gap-3 text-xs text-slate-800 dark:text-slate-200 font-bold">
+                    <span className="flex items-center space-x-1.5">
+                      <User className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" />
                       <span>{subject.faculty}</span>
                     </span>
-                    <span className="flex items-center space-x-1.5 text-slate-400 font-medium">
-                      <Users className="w-3.5 h-3.5 text-slate-400" />
+                    <span className="flex items-center space-x-1.5 text-slate-700 dark:text-slate-300">
+                      <Users className="w-3.5 h-3.5 text-slate-700 dark:text-slate-300" />
                       <span>TA: {subject.ta}</span>
                     </span>
                   </div>
@@ -129,11 +129,11 @@ export const SubjectOverviewGrid: React.FC = () => {
                     {/* Attendance Bar */}
                     <div>
                       <div className="flex items-center justify-between text-xs mb-1">
-                        <span className="text-slate-500 dark:text-slate-400 font-medium flex items-center space-x-1">
-                          <CheckCircle2 className="w-3 h-3 text-hsb-royal dark:text-hsb-cyan" />
+                        <span className="text-slate-800 dark:text-slate-200 font-bold flex items-center space-x-1">
+                          <CheckCircle2 className="w-3 h-3 text-[#004B93] dark:text-[#38BDF8]" />
                           <span>Attendance Progress</span>
                         </span>
-                        <span className="font-bold text-slate-800 dark:text-slate-200 tabular-nums">
+                        <span className="font-extrabold text-[#0F172A] dark:text-white tabular-nums">
                           {attMetrics.attended} / {attMetrics.conducted} Conducted
                           {attMetrics.upcoming > 0 && (
                             <span className="text-slate-400 font-normal ml-1">

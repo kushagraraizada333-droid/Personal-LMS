@@ -42,7 +42,7 @@ export const TodayClassesWidget: React.FC = () => {
             <h3 className="text-sm font-extrabold text-[#0F172A] dark:text-white">
               Daily Schedule
             </h3>
-            <p className="text-[11px] text-slate-400">
+            <p className="text-[11px] text-slate-700 dark:text-slate-300 font-bold">
               W{selectedDay.weekNumber} • {selectedDay.dayName}, {selectedDay.date}
             </p>
           </div>

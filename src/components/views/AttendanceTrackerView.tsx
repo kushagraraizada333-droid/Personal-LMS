@@ -124,8 +124,8 @@ export const AttendanceTrackerView: React.FC<AttendanceTrackerViewProps> = ({
             onClick={() => setFilterCode('all')}
             className={`px-3 py-1.5 rounded-xl text-xs font-bold transition ${
               filterCode === 'all'
-                ? 'bg-hsb-navy text-hsb-cyan border border-hsb-royal'
-                : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                ? 'bg-[#004B93] text-white shadow-xs'
+                : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:text-[#004B93]'
             }`}
           >
             All 8 Subjects
@@ -136,8 +136,8 @@ export const AttendanceTrackerView: React.FC<AttendanceTrackerViewProps> = ({
               onClick={() => setFilterCode(s.code)}
               className={`px-3 py-1.5 rounded-xl text-xs font-mono font-bold transition ${
                 filterCode === s.code
-                  ? 'bg-hsb-navy text-hsb-cyan border border-hsb-royal'
-                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:text-slate-900'
+                  ? 'bg-[#004B93] text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 hover:text-[#004B93]'
               }`}
             >
               {s.code}
@@ -169,15 +169,15 @@ export const AttendanceTrackerView: React.FC<AttendanceTrackerViewProps> = ({
                     <span className="text-xs font-mono font-black px-2.5 py-0.5 rounded-lg bg-[#EBF3FA] dark:bg-slate-800 text-[#004B93] dark:text-[#38BDF8] border border-[#D6E6F5] dark:border-slate-700">
                       {subject.code}
                     </span>
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                       {subject.credits} Credits • {subject.plannedSessions} Planned Sessions
                     </span>
                   </div>
-                  <h3 className="text-lg font-extrabold text-slate-900 dark:text-white">
+                  <h3 className="text-lg font-extrabold text-[#0F172A] dark:text-white">
                     {subject.name}
                   </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">
-                    Faculty: <span className="font-semibold text-slate-800 dark:text-slate-200">{subject.faculty}</span> • TA: {subject.ta}
+                  <p className="text-xs text-slate-700 dark:text-slate-300 font-semibold">
+                    Faculty: <span className="font-extrabold text-[#0F172A] dark:text-white">{subject.faculty}</span> • TA: {subject.ta}
                   </p>
                 </div>
 

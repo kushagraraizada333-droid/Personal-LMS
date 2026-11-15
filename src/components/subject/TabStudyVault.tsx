@@ -375,10 +375,10 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
             )}
           </div>
 
-          <h3 className="text-sm font-bold text-[#0F172A] dark:text-white">
+          <h3 className="text-sm font-extrabold text-[#0F172A] dark:text-white">
             {isUploading ? 'Uploading files...' : 'Drop files here or click to browse'}
           </h3>
-          <p className="text-[11px] text-slate-400 mt-0.5">
+          <p className="text-[11px] text-slate-700 dark:text-slate-300 font-bold mt-0.5">
             PDF • PPT • Excel • Word • Video • Audio • ZIP
           </p>
 
@@ -515,7 +515,7 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
 
           {/* Category Filter Pills */}
           <div className="flex flex-wrap items-center gap-1.5 pt-2 border-t border-slate-100 dark:border-slate-800/80">
-            <span className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mr-1">
+            <span className="text-[11px] font-extrabold text-slate-800 dark:text-slate-200 uppercase tracking-wider mr-1">
               Types:
             </span>
             {(
@@ -537,7 +537,7 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
                   className={`px-3 py-1 text-xs font-bold rounded-xl transition ${
                     isActive
                       ? 'bg-[#004B93] text-white shadow-sm'
-                      : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-600 dark:text-slate-300'
+                      : 'bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-800 dark:text-slate-200'
                   }`}
                 >
                   {cat.label}
@@ -634,12 +634,12 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
                       >
                         {file.name}
                       </p>
-                      <div className="flex items-center space-x-2 text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                        <span className="font-semibold text-[#004B93] dark:text-[#38BDF8] truncate max-w-[130px]">
+                      <div className="flex items-center space-x-2 text-[11px] text-slate-700 dark:text-slate-300 font-bold mt-0.5">
+                        <span className="font-extrabold text-[#004B93] dark:text-[#38BDF8] truncate max-w-[130px]">
                           {file.moduleTag}
                         </span>
                         <span>•</span>
-                        <span className="font-mono font-medium">{formatFileSize(file.size)}</span>
+                        <span className="font-mono font-bold text-slate-800 dark:text-slate-200">{formatFileSize(file.size)}</span>
                         <span>•</span>
                         <span>{formatDate(file.uploadDate)}</span>
                       </div>
@@ -682,12 +682,12 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
           <div className="bg-white dark:bg-[#111827] rounded-2xl border border-slate-200 dark:border-slate-800 overflow-hidden shadow-sm">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs">
-                <thead className="bg-[#F4F7FA] dark:bg-slate-800/80 text-slate-600 dark:text-slate-300 border-b border-slate-200 dark:border-slate-700">
+                <thead className="bg-[#EBF3FA] dark:bg-slate-800 text-slate-900 dark:text-white border-b border-slate-200 dark:border-slate-700">
                   <tr>
                     <th className="py-3 px-4 w-10">
                       <button
                         onClick={handleSelectAll}
-                        className="text-slate-400 hover:text-[#004B93]"
+                        className="text-slate-700 hover:text-[#004B93]"
                       >
                         {selectedFileIds.length === filteredAndSortedFiles.length &&
                         filteredAndSortedFiles.length > 0 ? (
@@ -697,11 +697,11 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
                         )}
                       </button>
                     </th>
-                    <th className="py-3 px-4 font-bold">File Name</th>
-                    <th className="py-3 px-4 font-bold">Module Tag</th>
-                    <th className="py-3 px-4 font-bold">Size</th>
-                    <th className="py-3 px-4 font-bold">Uploaded Date</th>
-                    <th className="py-3 px-4 font-bold text-right">Actions</th>
+                    <th className="py-3 px-4 font-extrabold text-slate-900 dark:text-white">File Name</th>
+                    <th className="py-3 px-4 font-extrabold text-slate-900 dark:text-white">Module Tag</th>
+                    <th className="py-3 px-4 font-extrabold text-slate-900 dark:text-white">Size</th>
+                    <th className="py-3 px-4 font-extrabold text-slate-900 dark:text-white">Uploaded Date</th>
+                    <th className="py-3 px-4 font-extrabold text-slate-900 dark:text-white text-right">Actions</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-slate-100 dark:divide-slate-800">
@@ -717,7 +717,7 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
                         <td className="py-3 px-4">
                           <button
                             onClick={() => handleToggleSelect(file.id)}
-                            className="text-slate-400 hover:text-[#004B93]"
+                            className="text-slate-700 hover:text-[#004B93]"
                           >
                             {isSelected ? (
                               <CheckSquare className="w-4 h-4 text-[#004B93] dark:text-[#38BDF8]" />
@@ -726,14 +726,14 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
                             )}
                           </button>
                         </td>
-                        <td className="py-3 px-4 font-semibold text-slate-900 dark:text-white">
+                        <td className="py-3 px-4 font-bold text-[#0F172A] dark:text-white">
                           <div className="flex items-center space-x-2.5">
                             <div className="p-1.5 rounded-lg bg-slate-100 dark:bg-slate-800 shrink-0">
                               {getFileIcon(file.name, file.type)}
                             </div>
                             <span
                               onClick={() => openFilePreview(file.id)}
-                              className="cursor-pointer hover:text-[#004B93] dark:hover:text-[#38BDF8] truncate max-w-xs md:max-w-md"
+                              className="cursor-pointer hover:text-[#004B93] dark:hover:text-[#38BDF8] truncate max-w-xs md:max-w-md font-bold"
                               title={file.name}
                             >
                               {file.name}
@@ -741,14 +741,14 @@ export const TabStudyVault: React.FC<TabStudyVaultProps> = ({ subject }) => {
                           </div>
                         </td>
                         <td className="py-3 px-4">
-                          <span className="font-semibold text-[#004B93] dark:text-[#38BDF8] bg-[#EBF3FA] dark:bg-slate-800 px-2.5 py-0.5 rounded-full text-[11px]">
+                          <span className="font-extrabold text-[#004B93] dark:text-[#38BDF8] bg-[#EBF3FA] dark:bg-slate-800 px-2.5 py-0.5 rounded-full text-[11px]">
                             {file.moduleTag}
                           </span>
                         </td>
-                        <td className="py-3 px-4 font-mono text-slate-600 dark:text-slate-300">
+                        <td className="py-3 px-4 font-mono font-bold text-slate-900 dark:text-slate-100">
                           {formatFileSize(file.size)}
                         </td>
-                        <td className="py-3 px-4 text-slate-500 dark:text-slate-400">
+                        <td className="py-3 px-4 font-semibold text-slate-800 dark:text-slate-200">
                           {formatDate(file.uploadDate)}
                         </td>
                         <td className="py-3 px-4 text-right">

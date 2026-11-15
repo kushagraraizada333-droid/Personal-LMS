@@ -15,10 +15,46 @@
     font-family: 'Plus Jakarta Sans', Inter, system-ui, -apple-system, sans-serif;
     font-feature-settings: 'tnum' 1, 'cv02' 1, 'cv03' 1, 'cv04' 1;
     -webkit-tap-highlight-color: transparent;
+    color: #0F172A;
   }
 
   body {
-    @apply bg-[#F4F7FA] text-slate-800 antialiased dark:bg-[#0B1426] dark:text-slate-100 min-h-screen selection:bg-[#004B93] selection:text-white;
+    @apply bg-[#F4F7FA] text-[#0F172A] antialiased dark:bg-[#0B1426] dark:text-slate-100 min-h-screen selection:bg-[#004B93] selection:text-white;
+    font-weight: 500;
+  }
+
+  /* Universal Dark & Crisp Typography in Light Mode */
+  :root:not(.dark) {
+    color: #0F172A;
+  }
+
+  /* Ensure text is dark and clearly visible, preventing pale/washed-out grey fonts */
+  :root:not(.dark) .text-slate-400:not([class*="text-white"]):not([class*="text-emerald"]):not([class*="text-rose"]):not([class*="text-amber"]) {
+    color: #334155 !important; /* deep slate-700 for high readability */
+    font-weight: 600;
+  }
+
+  :root:not(.dark) .text-slate-500:not([class*="text-white"]):not([class*="text-emerald"]):not([class*="text-rose"]):not([class*="text-amber"]) {
+    color: #1E293B !important; /* dark slate-800 */
+    font-weight: 600;
+  }
+
+  :root:not(.dark) .text-slate-600:not([class*="text-white"]) {
+    color: #0F172A !important; /* deep slate-900 */
+  }
+
+  :root:not(.dark) .text-slate-300:not([class*="text-white"]):not([class*="bg-"]) {
+    color: #475569 !important; /* solid slate-600 */
+  }
+
+  /* Form controls high-contrast dark text */
+  input, select, textarea {
+    color: #0F172A;
+    font-weight: 600;
+  }
+
+  .dark input, .dark select, .dark textarea {
+    color: #F8FAFC;
   }
 }
 
@@ -33,20 +69,20 @@
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgba(15, 44, 89, 0.25);
+  background: rgba(0, 75, 147, 0.35);
   border-radius: 9999px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgba(15, 44, 89, 0.45);
+  background: rgba(0, 75, 147, 0.65);
 }
 
 .dark ::-webkit-scrollbar-thumb {
-  background: rgba(56, 189, 248, 0.25);
+  background: rgba(56, 189, 248, 0.35);
 }
 
 .dark ::-webkit-scrollbar-thumb:hover {
-  background: rgba(56, 189, 248, 0.45);
+  background: rgba(56, 189, 248, 0.65);
 }
 
 .tabular-nums {

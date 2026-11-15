@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { LMSProvider, useLMS } from './context/LMSContext';
 import { Sidebar } from './components/layout/Sidebar';
 import { Header } from './components/layout/Header';
@@ -17,6 +17,7 @@ import { PomodoroModal } from './components/common/PomodoroModal';
 import { BackupModal } from './components/common/BackupModal';
 import { AddAssignmentModal } from './components/common/AddAssignmentModal';
 import { Loader2 } from 'lucide-react';
+import { playClickSound } from './utils/sound';
 
 const MainContent: React.FC = () => {
   const { activeView, isLoading, student } = useLMS();
@@ -24,6 +25,18 @@ const MainContent: React.FC = () => {
   const [isAddAssignmentOpen, setIsAddAssignmentOpen] = useState(false);
   const [isSyncExcelOpen, setIsSyncExcelOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+
+  // Universal sound feedback on every mouse click
+  useEffect(() => {
+    const handleGlobalClick = () => {
+      playClickSound();
+    };
+
+    window.addEventListener('click', handleGlobalClick, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener('click', handleGlobalClick, { capture: true });
+    };
+  }, []);
 
   if (isLoading) {
     return (

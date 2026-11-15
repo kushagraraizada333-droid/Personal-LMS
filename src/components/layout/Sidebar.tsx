@@ -112,7 +112,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSyncExcel }) => {
 
         {/* 6 Primary Navigation Views */}
         <div className="px-3 py-1 space-y-1">
-          <p className="px-3 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 mb-1.5">
+          <p className="px-3 text-[10px] font-extrabold uppercase tracking-widest text-slate-700 dark:text-slate-300 mb-1.5">
             Academic Management
           </p>
           {navItems.map((item) => {
@@ -125,7 +125,7 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSyncExcel }) => {
                 className={`w-full flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-bold transition-all ${
                   isActive
                     ? 'bg-[#004B93] text-white shadow-sm shadow-[#004B93]/20'
-                    : 'text-[#334155] dark:text-slate-300 hover:text-[#004B93] dark:hover:text-white hover:bg-[#EBF3FA] dark:hover:bg-slate-800'
+                    : 'text-[#0F172A] dark:text-slate-100 hover:text-[#004B93] dark:hover:text-white hover:bg-[#EBF3FA] dark:hover:bg-slate-800'
                 }`}
               >
                 <div className="flex items-center space-x-3">
@@ -147,14 +147,14 @@ export const Sidebar: React.FC<SidebarProps> = ({ onOpenSyncExcel }) => {
           <div className="flex items-center justify-between px-3 mb-1.5">
             <button
               onClick={() => setIsSubjectsExpanded(!isSubjectsExpanded)}
-              className="flex items-center space-x-1.5 text-[10px] font-bold uppercase tracking-widest text-slate-400 dark:text-slate-500 hover:text-[#004B93] dark:hover:text-white transition"
+              className="flex items-center space-x-1.5 text-[10px] font-extrabold uppercase tracking-widest text-slate-700 dark:text-slate-300 hover:text-[#004B93] dark:hover:text-white transition"
             >
               <ChevronRight
                 className={`w-3 h-3 transition-transform ${isSubjectsExpanded ? 'rotate-90' : ''}`}
               />
               <span>Trimester II Courses ({subjects.length})</span>
             </button>
-            <span className="text-[10px] font-mono text-slate-400 font-bold">16 Credits</span>
+            <span className="text-[10px] font-mono text-slate-700 dark:text-slate-300 font-extrabold">16 Credits</span>
           </div>
 
           {isSubjectsExpanded && (
